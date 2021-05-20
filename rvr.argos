@@ -1,0 +1,102 @@
+<?xml version="1.0" ?>
+<argos-configuration>
+
+  <!-- ************************* -->
+  <!-- * General configuration * -->
+  <!-- ************************* -->
+  <framework>
+    <system threads="0" />
+    <experiment length="0"
+                ticks_per_second="10"
+                random_seed="124" />
+  </framework>
+
+  <!-- *************** -->
+  <!-- * Controllers * -->
+  <!-- *************** -->
+  <controllers>
+
+    <rvr_foraging id="fdc"
+                                        library="devel/lib/libforaging.so">
+      <actuators>
+        <rvr_wheels implementation="default" />
+		    <rvr_rgb_leds implementation="default" medium="leds"/>
+      </actuators>
+      <sensors>
+        <rvr_ground implementation="rot_z_only"/>
+        <rvr_proximity implementation="default" show_rays="true" />
+        <rvr_lidar implementation="default" show_rays="true" />
+      </sensors>
+      <params velocity="5"
+              rvr_driven="false"/>
+    </rvr_foraging>
+
+  </controllers>
+
+  <!-- *********************** -->
+  <!-- * Arena configuration * -->
+  <!-- *********************** -->
+  <arena size="20, 20, 1" center="0,0,0.5">
+
+    <box id="wall_north" size="2,0.1,0.1" movable="false">
+      <body position="0,1.05,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_south" size="2,0.1,0.1" movable="false">
+      <body position="0,-1.05,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_east" size="0.1,2,0.1" movable="false">
+      <body position="1.05,0,0" orientation="0,0,0" />
+    </box>
+    <box id="wall_west" size="0.1,2,0.1" movable="false">
+      <body position="-1.05,0,0" orientation="0,0,0" />
+    </box>
+
+    <!--
+        You can distribute entities randomly. Here, we distribute
+        10 rvrs in this way:
+        - the position is uniformly distributed
+        on the ground, in the square whose corners are (-2,-2) and (2,2)
+        - the orientations are non-zero only when rotating around Z and chosen
+        from a gaussian distribution, whose mean is zero degrees and
+        standard deviation is 360 degrees.
+    -->
+    <distribute>
+      <position method="uniform" min="-2,-2,0" max="2,2,0" />
+      <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
+      <entity quantity="1" max_trials="100">
+        <rvr id="fb">
+          <controller config="fdc" />
+        </rvr>
+      </entity>
+    </distribute>
+	
+	<!-- Set the floor to an image -->
+	<floor id="floor" source="image" path="/mnt/d/RVR/argos3-examples/experiments/foraging_4.png" />
+	
+
+
+
+  </arena>
+
+  <!-- ******************* -->
+  <!-- * Physics engines * -->
+  <!-- ******************* -->
+  <physics_engines>
+    <dynamics2d id="dyn2d" />
+  </physics_engines>
+
+  <!-- ********* -->
+  <!-- * Media * -->
+  <!-- ********* -->
+  <media>
+	<led id="leds"/>
+  </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+    <qt-opengl />
+  </visualization>
+
+</argos-configuration>
