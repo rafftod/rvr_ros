@@ -1,3 +1,6 @@
 [submodule "src/serial"]
 	path = src/serial
 	url = https://github.com/wjwwood/serial
+[submodule "src/teraranger_array"]
+	path = src/teraranger_array
+	url = https://github.com/Terabee/teraranger_array
