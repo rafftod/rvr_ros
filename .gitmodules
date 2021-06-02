@@ -7,9 +7,6 @@
 [submodule "src/slam_gmapping"]
 	path = src/slam_gmapping
 	url = https://github.com/ros-perception/slam_gmapping
-[submodule "src/openslam_gmapping"]
-	path = src/openslam_gmapping
-	url = https://github.com/OpenSLAM-org/openslam_gmapping
 [submodule "src/navigation"]
 	path = src/navigation
 	url = https://github.com/ros-planning/navigation/tree/noetic-devel
