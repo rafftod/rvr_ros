@@ -12,4 +12,4 @@
 	url = https://github.com/OpenSLAM-org/openslam_gmapping
 [submodule "src/navigation"]
 	path = src/navigation
-	url = https://github.com/ros-planning/navigation
+	url = https://github.com/ros-planning/navigation/tree/noetic-devel
