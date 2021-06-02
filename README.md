@@ -54,6 +54,8 @@ $ source ./devel/setup.bash
 Optional : add it to .bashrc to avoid doing it at each login
 
 ```
-echo "source ${PWD}/devel/setup.bash" >> .bashrc
-source .bashrc
+echo "source ${PWD}/devel/setup.bash" >> ~/.bashrc
+source ~/.bashrc
 ```
+
+###
