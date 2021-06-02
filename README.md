@@ -28,6 +28,7 @@ First clone the repository :
 
 ```
 $ git clone https://github.com/rafftod/rvr_foraging rvr_foraging
+$ cd rvr_foraging
 $ git submodule init
 $ git submodule update
 ```
