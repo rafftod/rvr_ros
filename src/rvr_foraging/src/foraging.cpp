@@ -28,8 +28,8 @@ CRVR::CRVR() : m_pcWheels(NULL),
                border_color(CColor::GREEN),
                leftStepsDiff(0),
                rightStepsDiff(0),
-               calibStep(0.67),
-               calibAngle(0.4355),
+               calibStep(5.8),
+               calibAngle(3.8),
                pickup_duration(3.0f)
 {
 }
@@ -94,10 +94,22 @@ void CRVR::InitRos()
     std::stringstream ss;
     ros::NodeHandle rosNode;
 
+    ss << name.str() << "/map_merge/init_pose_x";
+    rosNode.setParam(ss.str(), xPos);
+    ss.str("");
+    ss << name.str() << "/map_merge/init_pose_y";
+    rosNode.setParam(ss.str(), yPos);
+    ss.str("");
+    ss << name.str() << "/map_merge/init_pose_z";
+    rosNode.setParam(ss.str(), 0.0);
+    ss.str("");
+    ss << name.str() << "/map_merge/init_pose_yaw";
+    rosNode.setParam(ss.str(), theta);
+
     // setup color sensor subscriber
     color_sensor_sub = rosNode.subscribe("sensor_color", 10, &CRVR::ColorHandler, this);
     // setup odometry subscriber
-    odometry_subscriber = rosNode.subscribe("odom", 10, &CRVR::OdometryHandler, this);
+    odometry_subscriber = rosNode.subscribe("odometry", 10, &CRVR::OdometryHandler, this);
 
     // teraranger subscriber
     teraranger_sub = rosNode.subscribe("ranges", 10, &CRVR::TerarangerHandler, this);
@@ -114,6 +126,22 @@ void CRVR::InitRos()
     vel_msg.layout.dim[0].label = "wheel_vel";
     vel_msg.data.clear();
 
+    // mapping publishers
+
+    mapping_laser_pub = rosNode.advertise<sensor_msgs::LaserScan>("/scan", 10);
+    mapping_odom_pub = rosNode.advertise<nav_msgs::Odometry>("/odom", 10);
+
+    //init laser scan
+    ss.str("");
+    ss << name.str() << "/base_laser";
+    laserMsg.header.frame_id = ss.str();
+    laserMsg.angle_min = -M_PI;
+    laserMsg.angle_max = M_PI;
+    laserMsg.angle_increment = M_PI / 4.0;
+    laserMsg.range_min = 0;      // laser scan situated in the center of the robot
+    laserMsg.range_max = 200000; // laser scan situated in the center of the robot
+    laserMsg.ranges.resize(719);
+    laserMsg.intensities.resize(719);
     // setup LED publisher
     for (unsigned short int i = 0; i < 5; ++i)
     {
@@ -121,6 +149,9 @@ void CRVR::InitRos()
         ss << "led_color_" << i;
         led_pub[i] = rosNode.advertise<std_msgs::ColorRGBA>(ss.str(), 10);
     }
+
+    currentTime = ros::Time::now();
+    lastTime = ros::Time::now();
 }
 
 void CRVR::ControlStep()
@@ -206,6 +237,9 @@ void CRVR::SearchStep()
     CVector2 speeds = ComputeWheelsVelocityFromVector(CVector2(1.0, stepAngle));
     leftWheelVelocity = speeds.GetX();
     rightWheelVelocity = speeds.GetY();
+    // leftWheelVelocity = 5;
+    // rightWheelVelocity = 5;
+
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
     /*     leftWheelVelocity = 5;
     rightWheelVelocity = 5;
@@ -316,6 +350,16 @@ CVector2 CRVR::ComputeWheelsVelocityFromVector(CVector2 c_vector_to_follow)
 
 void CRVR::RosControlStep()
 {
+    static tf::TransformBroadcaster br; //needed for tf transform
+
+    tf::Transform transform;
+    tf::Quaternion q;
+    std::stringstream parent;
+    std::stringstream child;
+
+    std::stringstream name;
+    name.str("");
+    name << GetId();
     // publish velocity
     vel_msg.data.clear();
     vel_msg.data.push_back(round(leftWheelVelocity / 100)); // convert cm/s to m/s
@@ -329,6 +373,70 @@ void CRVR::RosControlStep()
         led_msg[i].b = sensor_color.GetBlue();
         led_msg[i].a = sensor_color.GetAlpha();
         led_pub[i].publish(led_msg[i]);
+    }
+    // send odometry message for mapping
+    odomMsg.header.stamp = ros::Time::now();
+    std::stringstream ss;
+    ss.str("");
+    ss << name.str() << "/odom";
+    odomMsg.header.frame_id = ss.str();
+    ss.str("");
+    ss << name.str() << "/base_link";
+    odomMsg.child_frame_id = ss.str();
+    odomMsg.pose.pose.position.x = xPos;
+    odomMsg.pose.pose.position.y = yPos;
+    odomMsg.pose.pose.position.z = 0;
+    geometry_msgs::Quaternion odomQuat = tf::createQuaternionMsgFromYaw(theta); // Since all odometry is 6DOF we'll need a quaternion created from yaw.
+    odomMsg.pose.pose.orientation = odomQuat;
+    currentTime = ros::Time::now();
+    odomMsg.twist.twist.linear.x = deltaSteps / (abs((currentTime - lastTime).toSec()));
+    odomMsg.twist.twist.angular.z = deltaTheta / (abs((currentTime - lastTime).toSec()));
+
+    lastTime = ros::Time::now();
+
+    mapping_odom_pub.publish(odomMsg);
+
+    //odometry transform
+    geometry_msgs::TransformStamped odomTrans;
+    odomTrans.header.stamp = odomMsg.header.stamp;
+    odomTrans.header.frame_id = odomMsg.header.frame_id;
+    odomTrans.child_frame_id = odomMsg.child_frame_id;
+    odomTrans.transform.translation.x = xPos;
+    odomTrans.transform.translation.y = yPos;
+    odomTrans.transform.translation.z = 0.0;
+    odomTrans.transform.rotation = odomQuat;
+    //std::cout << "x : " << xPos << ", y : " << yPos << std::endl;
+    //std::cout << "theta : " << theta << std::endl;
+    br.sendTransform(odomTrans);
+
+    if (!rvr_driven)
+    {
+        // create laser message for mapping
+        for (int i = 0; i < 719; i++)
+        {
+            if (laserMsg.ranges[i] > laserMsg.range_max)
+            {
+                laserMsg.ranges[i] = laserMsg.range_max;
+            }
+            else if (laserMsg.ranges[i] < laserMsg.range_min)
+            {
+                laserMsg.ranges[i] = laserMsg.range_min;
+            }
+            else
+            {
+                laserMsg.ranges[i] = lidar_readings[i];
+            }
+        }
+        transform.setOrigin(tf::Vector3(0.0, 0.0, 0.03));
+        q.setRPY(0, 0, 0);
+        transform.setRotation(q);
+        parent.str("");
+        child.str("");
+        parent << name.str() << "/base_laser";
+        child << name.str() << "/base_link";
+        br.sendTransform(tf::StampedTransform(transform, ros::Time::now(), child.str(), parent.str()));
+        laserMsg.header.stamp = ros::Time::now();
+        mapping_laser_pub.publish(laserMsg);
     }
 }
 
@@ -362,8 +470,6 @@ void CRVR::OdometryUpdate()
 
 void CRVR::ColorHandler(const std_msgs::ColorRGBA &msg)
 {
-    if (!rvr_driven)
-        rvr_driven = true;
     sensor_color.SetRed(msg.r);
     sensor_color.SetGreen(msg.g);
     sensor_color.SetBlue(msg.b);
@@ -372,8 +478,6 @@ void CRVR::ColorHandler(const std_msgs::ColorRGBA &msg)
 
 void CRVR::OdometryHandler(const nav_msgs::Odometry &msg)
 {
-    if (!rvr_driven)
-        rvr_driven = true;
     xPos = msg.pose.pose.position.x;
     yPos = msg.pose.pose.position.y;
     theta = tf::getYaw(msg.pose.pose.orientation);
@@ -381,8 +485,6 @@ void CRVR::OdometryHandler(const nav_msgs::Odometry &msg)
 
 void CRVR::TerarangerHandler(const teraranger_array::RangeArray &msg)
 {
-    if (!rvr_driven)
-        rvr_driven = true;
     for (short int i = 0; i < 8; ++i)
     {
         prox_readings[i] = msg.ranges[i].range;
@@ -391,10 +493,10 @@ void CRVR::TerarangerHandler(const teraranger_array::RangeArray &msg)
 
 void CRVR::LidarHandler(const sensor_msgs::LaserScan &msg)
 {
-    if (!rvr_driven)
-        rvr_driven = true;
     for (short int i = 0; i < 719; ++i)
         lidar_readings[i] = msg.ranges[i];
+    // send it back for mapping
+    mapping_laser_pub.publish(msg);
 }
 
 REGISTER_CONTROLLER(CRVR, "rvr_foraging")

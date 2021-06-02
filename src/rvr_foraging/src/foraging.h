@@ -162,6 +162,12 @@ private:
     ros::Publisher led_pub[5];
     std_msgs::ColorRGBA led_msg[5];
 
+    // mapping publishers
+    ros::Publisher mapping_odom_pub;
+    ros::Publisher mapping_laser_pub;
+
+    nav_msgs::Odometry odomMsg;
+    sensor_msgs::LaserScan laserMsg;
     /*
     * The following variables are used as parameters for the
     * algorithm. You can set their value in the <parameters> section
@@ -210,6 +216,9 @@ private:
     float pickup_duration;
     // turn back info
     double starting_theta;
+
+    //clocks
+    ros::Time currentTime, lastTime;
 };
 
 #endif
