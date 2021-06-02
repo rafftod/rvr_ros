@@ -2,7 +2,7 @@
 
 This repository contains everything needed to use ARGoS and ROS to run experiments with the Sphero RVR, with additional sensors ([Terabee Teraranger Multiflex](https://www.terabee.com/shop/lidar-tof-multi-directional-arrays/teraranger-multiflex/) and [YDLIDAR X4](https://www.ydlidar.com/products/view/5.html)).
 
-It also includes a foraging behaviour and the basics of mapping.
+It also includes a basic foraging behaviour.
 
 This environment has been tested with the following environment :
 
@@ -33,4 +33,27 @@ $ git submodule init
 $ git submodule update
 ```
 
-Then install ROS packages
+Then install ROS packages dependencies :
+
+```
+$ rosdep install --from-paths src --ignore-src -r -y
+```
+
+Finally compile the workspace packages :
+
+```
+$ catkin_make
+```
+
+Source the devel folder to be able to run the package :
+
+```
+$ source ./devel/setup.bash
+```
+
+Optional : add it to .bashrc to avoid doing it at each login
+
+```
+echo "source ${PWD}/devel/setup.bash" >> .bashrc
+source .bashrc
+```
