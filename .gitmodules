@@ -4,3 +4,6 @@
 [submodule "src/teraranger_array"]
 	path = src/teraranger_array
 	url = https://github.com/Terabee/teraranger_array
+[submodule "src/ydlidar_ros"]
+	path = src/ydlidar_ros
+	url = https://github.com/YDLIDAR/ydlidar_ros

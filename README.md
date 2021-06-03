@@ -4,11 +4,37 @@ This repository contains everything needed to use ARGoS and ROS to run experimen
 
 It also includes a basic foraging behaviour.
 
+## Testing environment
+
 This environment has been tested with the following environment :
 
 -   Ubuntu 20.04
 -   ROS Noetic
 -   ARGoS 3 beta 48
+
+## Current implementation
+
+### Content
+
+This implementation currently supports :
+
+-   Wheels actuators
+-   Ground color sensor
+-   RGB LEDs
+-   Proximity sensors
+-   LIDAR
+
+### Architecture
+
+The architecture is as follows :
+![RVR ROS mode of functioning](https://imgur.com/a/YGHiHQl "RVR ROS")
+
+It revolves around 4 main nodes :
+
+-   The RVR driver node that enables the use of the real robot sensors and actuators
+-   The ARGoS node that centralizes the control software
+-   The LIDAR node
+-   The proximity sensor nodes
 
 ## Installation
 
@@ -20,18 +46,42 @@ Here are the dependencies of the project :
 -   [ROS Noetic for Ubuntu 20.04](http://wiki.ros.org/noetic/Installation/Ubuntu)
 -   [RVR plugin for ARGoS 3](https://github.com/rafftod/argos3-rvr)
 
-Other ROS packages dependencies will be installed during the next step.
+You will also need the Sphero SDK for Raspberry Pi.
+
+Install its dependencies :
+
+```
+pip3 install aiohttp pyserial_asyncio
+```
+
+Clone the SDK :
+
+```
+cd ~
+git clone https://github.com/sphero-inc/sphero-sdk-raspberrypi-python
+```
+
+Check that UART and the API is working :
+
+```
+python3 ~/sphero-sdk-raspberrypi-python/getting_started/observer/api_and_shell/echo.py
+```
+
+You should get 2 lines of output after the RVR firmware check. If you don't, check that UART is correctly set up on the Raspberry Pi.
 
 ### Compilation
 
 First clone the repository :
 
 ```
+cd ~
 git clone https://github.com/rafftod/rvr_foraging rvr_foraging
 cd rvr_foraging
 git submodule init
 git submodule update
 ```
+
+Create a symbolic link to the Sphero SDK
 
 Then install ROS packages dependencies :
 
@@ -58,7 +108,13 @@ echo "source ${PWD}/devel/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 ```
 
-### Running the code
+Create a symbolic link to the SDK in the workspace :
+
+```
+ln -s ~/sphero-sdk-raspberrypi-python/sphero_sdk/ ~/rvr_foraging/src/rvr_foraging/src/
+```
+
+## Running the code
 
 First start a master ROS :
 
@@ -68,13 +124,13 @@ roscore
 
 You can run each of the following node by entering the corresponding command :
 
-#### RVR driver
+### RVR driver
 
 ```
 rosrun rvr_foraging rvr_driver.py
 ```
 
-#### ARGoS controller
+### ARGoS controller
 
 In the workspace directory :
 
@@ -82,13 +138,13 @@ In the workspace directory :
 argos3 -c rvr.argos
 ```
 
-#### Teraranger Multiflex
+### Teraranger Multiflex
 
 ```
 rosrun teraranger_array teraranger_multiflex _portname:=/dev/ttyACM0
 ```
 
-#### YDLIDAR X4
+### YDLIDAR X4
 
 ```
 roslaunch ydlidar_ros X4.launch
