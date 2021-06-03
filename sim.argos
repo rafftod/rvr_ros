@@ -28,7 +28,7 @@
         <rvr_lidar implementation="default" show_rays="true" />
       </sensors>
       <params velocity="5"
-              rvr_driven="true"/>
+              rvr_driven="false"/>
     </rvr_foraging>
 
   </controllers>
@@ -91,5 +91,12 @@
   <media>
 	<led id="leds"/>
   </media>
+
+  <!-- ****************** -->
+  <!-- * Visualization * -->
+  <!-- ****************** -->
+  <visualization>
+    <qt-opengl />
+  </visualization>
 
 </argos-configuration>

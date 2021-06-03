@@ -65,6 +65,14 @@ This is the bridge between the ARGoS controller and the RVR API.
 
 Note: exiting this script with Ctrl+C does not always work and sometimes requires a reboot of the robot.
 
+#### rvr.argos
+
+This starts the controller with the `rvr_driven` parameter set as `true`, meant to be run on the real robot.
+
+#### sim.argos
+
+This starts the controller with the `rvr_driven` parameter set as `false`, meant to be run on simulation.
+
 ## Installation
 
 ### Dependencies
@@ -170,6 +178,14 @@ rosrun rvr_foraging rvr_driver.py
 ### ARGoS controller
 
 In the workspace directory :
+
+Start a simulation :
+
+```
+argos3 -c sim.argos
+```
+
+Start the real robot controller :
 
 ```
 argos3 -c rvr.argos

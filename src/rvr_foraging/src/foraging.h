@@ -107,30 +107,43 @@ public:
 
     virtual void RosControlStep(); //must be called in ControlStep
 
+    /* Handler for the ground color sensor data from RVR driver */
     virtual void ColorHandler(const std_msgs::ColorRGBA &msg);
 
+    /* Handler for odometry from RVR driver */
     virtual void OdometryHandler(const nav_msgs::Odometry &msg);
 
+    /* Handler for proximity sensor data */
     virtual void TerarangerHandler(const teraranger_array::RangeArray &msg);
 
+    /* Handler for lidar Laserscan data */
     virtual void LidarHandler(const sensor_msgs::LaserScan &msg);
 
+    /* Start step of the foraging state machine */
     virtual void StartStep();
 
+    /* Search step of the foraging state machine */
     virtual void SearchStep();
 
+    /* Pickup step of the foraging state machine */
     virtual void PickupStep();
 
+    /* Homing step of the foraging state machine */
     virtual void HomingStep();
 
+    /* Turn back step of the foraging state machine */
     virtual void TurnBackStep();
 
+    /* Computes wheel velocities from vector to follow */
     virtual CVector2 ComputeWheelsVelocityFromVector(CVector2 c_vector_to_follow);
 
+    /* Virtual odometry updater */
     virtual void OdometryUpdate();
 
 private:
-    /* Pointer to the differential steering actuator */
+    /* These are pointers to the different sensors 
+    and actuators the RVR implements. */
+
     CCI_RVRWheelsActuator *m_pcWheels;
 
     CCI_RVRGroundColorSensor *m_pcColorSensor;
@@ -168,21 +181,20 @@ private:
 
     nav_msgs::Odometry odomMsg;
     sensor_msgs::LaserScan laserMsg;
-    /*
-    * The following variables are used as parameters for the
-    * algorithm. You can set their value in the <parameters> section
-    * of the XML configuration file, under the
-    * <controllers><epuck_obstacleavoidance_controller> section.
-    */
+
     /* Wheel speed. */
     Real leftWheelVelocity;
     Real rightWheelVelocity;
 
+    /* This is the default wheel velocity.
+    It is usually parsed from the XML file. */
     Real m_fDefaultWheelVelocity;
 
     // color detected by the sensor
     CColor sensor_color;
+    // proximity sensor readings
     Real prox_readings[8];
+    // lidar readings
     Real lidar_readings[719];
 
     // boolean that indicates if we are using the real robot

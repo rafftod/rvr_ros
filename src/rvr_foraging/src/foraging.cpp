@@ -237,13 +237,8 @@ void CRVR::SearchStep()
     CVector2 speeds = ComputeWheelsVelocityFromVector(CVector2(1.0, stepAngle));
     leftWheelVelocity = speeds.GetX();
     rightWheelVelocity = speeds.GetY();
-    // leftWheelVelocity = 5;
-    // rightWheelVelocity = 5;
 
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
-    /*     leftWheelVelocity = 5;
-    rightWheelVelocity = 5;
-    m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity); */
 }
 
 void CRVR::PickupStep()
