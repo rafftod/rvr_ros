@@ -27,7 +27,7 @@ This implementation currently supports :
 ### Architecture
 
 The architecture is as follows :
-![RVR ROS mode of functioning](https://imgur.com/a/YGHiHQl "RVR ROS")
+![RVR ROS mode of functioning](https://i.imgur.com/2DQQTra.png "RVR ROS")
 
 It revolves around 4 main nodes :
 
