@@ -36,6 +36,35 @@ It revolves around 4 main nodes :
 -   The LIDAR node
 -   The proximity sensor nodes
 
+These are structured as follows :
+
+```
+rvr_foraging/
+├─ src/
+│  ├─ rvr_foraging/
+│  │  ├─ src/
+│  │  │  ├─ foraging.h
+│  │  │  ├─ foraging.cpp
+│  │  │  ├─ rvr_driver.py
+│  ├─ serial/
+│  ├─ teraranger_array/
+│  ├─ ydlidar_ros/
+rvr.argos
+sim.argos
+```
+
+The inner rvr_foraging folder is the package I developed. The other ones in src/ are dependencies for the external sensors and belong to other repositories.
+
+#### foraging.h and foraging.cpp
+
+These include the implementation of the ARGoS controller and its ROS node.
+
+#### rvr_driver.py
+
+This is the bridge between the ARGoS controller and the RVR API.
+
+Note: exiting this script with Ctrl+C does not always work and sometimes requires a reboot of the robot.
+
 ## Installation
 
 ### Dependencies
@@ -112,6 +141,14 @@ Create a symbolic link to the SDK in the workspace :
 
 ```
 ln -s ~/sphero-sdk-raspberrypi-python/sphero_sdk/ ~/rvr_foraging/src/rvr_foraging/src/
+```
+
+Rename the LIDAR port to /dev/ydlidar
+
+```
+roscd ydlidar_ros/startup
+sudo chmod 777 ./*
+sudo sh initenv.sh
 ```
 
 ## Running the code
