@@ -24,8 +24,9 @@
       </actuators>
       <sensors>
         <rvr_ground implementation="rot_z_only"/>
-        <rvr_proximity implementation="default" show_rays="true" />
-        <rvr_lidar implementation="default" show_rays="true" />
+        <rvr_proximity implementation="default" show_rays="false" />
+        <rvr_lidar implementation="default" show_rays="false" />
+        <rvr_quaternion implementation="default" />
       </sensors>
       <params velocity="5"
               rvr_driven="false"/>
@@ -71,7 +72,7 @@
     </distribute>
 	
 	<!-- Set the floor to an image -->
-	<floor id="floor" source="image" path="/mnt/d/RVR/argos3-examples/experiments/foraging_4.png" />
+    <floor id="floor" source="image" path="colored_magic_squares1.png" />
 	
 
 

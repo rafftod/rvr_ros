@@ -11,6 +11,7 @@ CRVR::CRVR() : m_pcWheels(NULL),
                m_pcLedsActuator(NULL),
                m_pcProximitySensor(NULL),
                m_pcLidarSensor(NULL),
+               m_pcQuaternionSensor(NULL),
                sensor_color(CColor::GREEN),
                m_fDefaultWheelVelocity(155.5f),
                rvr_driven(false),
@@ -63,6 +64,7 @@ void CRVR::Init(TConfigurationNode &t_node)
     m_pcLedsActuator = GetActuator<CCI_RVRRGBLEDsActuator>("rvr_rgb_leds");
     m_pcProximitySensor = GetSensor<CCI_RVRProximitySensor>("rvr_proximity");
     m_pcLidarSensor = GetSensor<CCI_RVRLidarSensor>("rvr_lidar");
+    m_pcQuaternionSensor = GetSensor<CCI_RVRQuaternionSensor>("rvr_quaternion");
     m_pcRng = CRandom::CreateRNG("argos");
     m_cRandomRange.SetMax(1.0);
     /*
@@ -169,6 +171,11 @@ void CRVR::ControlStep()
         {
             lidar_readings[i] = m_pcLidarSensor->GetReading(i).Value;
         }
+        quat_reading = m_pcQuaternionSensor->GetReading().Orientation;
+        std::cout << "W:" << quat_reading.GetW() << std::endl;
+        std::cout << "X:" << quat_reading.GetX() << std::endl;
+        std::cout << "Y:" << quat_reading.GetY() << std::endl;
+        std::cout << "Z:" << quat_reading.GetZ() << std::endl;
     }
     m_pcLedsActuator->SetColors(sensor_color);
     switch (state)
@@ -234,9 +241,13 @@ void CRVR::SearchStep()
     {
         stepLength--;
     }
+    /*
     CVector2 speeds = ComputeWheelsVelocityFromVector(CVector2(1.0, stepAngle));
     leftWheelVelocity = speeds.GetX();
     rightWheelVelocity = speeds.GetY();
+    */
+    leftWheelVelocity = m_fDefaultWheelVelocity;
+    rightWheelVelocity = -m_fDefaultWheelVelocity;
 
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
@@ -269,7 +280,7 @@ void CRVR::HomingStep()
     // extract angle between the vectors
     double angle = acos(direction.DotProduct(pointing_vector) / (direction.Length() * pointing_vector.Length()));
     //std::cout << "theta : " << theta << std::endl;
-    std::cout << "angle : " << angle << std::endl;
+    //std::cout << "angle : " << angle << std::endl;
     if (std::abs(angle) <= 0.1)
     {
         leftWheelVelocity = m_fDefaultWheelVelocity;
