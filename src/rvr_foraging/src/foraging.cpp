@@ -78,6 +78,8 @@ void CRVR::Init(TConfigurationNode &t_node)
     leftWheelVelocity = m_fDefaultWheelVelocity;
     rightWheelVelocity = m_fDefaultWheelVelocity;
     GetNodeAttributeOrDefault(t_node, "rvr_driven", rvr_driven, rvr_driven);
+    // set state as starting state
+    state = State::START;
     InitRos();
 }
 
