@@ -12,6 +12,7 @@ CRVR::CRVR() : m_pcWheels(NULL),
                m_pcProximitySensor(NULL),
                m_pcLidarSensor(NULL),
                m_pcQuaternionSensor(NULL),
+               m_pcLightSensor(NULL),
                sensor_color(CColor::GREEN),
                m_fDefaultWheelVelocity(155.5f),
                rvr_driven(false),
@@ -65,6 +66,7 @@ void CRVR::Init(TConfigurationNode &t_node)
     m_pcProximitySensor = GetSensor<CCI_RVRProximitySensor>("rvr_proximity");
     m_pcLidarSensor = GetSensor<CCI_RVRLidarSensor>("rvr_lidar");
     m_pcQuaternionSensor = GetSensor<CCI_RVRQuaternionSensor>("rvr_quaternion");
+    m_pcLightSensor = GetSensor<CCI_RVRLightSensor>("rvr_light");
     m_pcRng = CRandom::CreateRNG("argos");
     m_cRandomRange.SetMax(1.0);
     /*
@@ -174,10 +176,19 @@ void CRVR::ControlStep()
             lidar_readings[i] = m_pcLidarSensor->GetReading(i).Value;
         }
         quat_reading = m_pcQuaternionSensor->GetReading().Orientation;
-        std::cout << "W:" << quat_reading.GetW() << std::endl;
-        std::cout << "X:" << quat_reading.GetX() << std::endl;
-        std::cout << "Y:" << quat_reading.GetY() << std::endl;
-        std::cout << "Z:" << quat_reading.GetZ() << std::endl;
+        light = m_pcLightSensor->GetReading().Value;
+        std::cout << light << std::endl;
+        // pitch = m_pcImuSensor->GetReading().Pitch;
+        // roll = m_pcImuSensor->GetReading().Roll;
+        // yaw = m_pcImuSensor->GetReading().Yaw;
+        // std::cout << "Pitch:" << pitch << std::endl;
+        // std::cout << "Roll:" << roll << std::endl;
+        // std::cout << "Yaw:" << yaw << std::endl;
+
+        // std::cout << "W:" << quat_reading.GetW() << std::endl;
+        // std::cout << "X:" << quat_reading.GetX() << std::endl;
+        // std::cout << "Y:" << quat_reading.GetY() << std::endl;
+        // std::cout << "Z:" << quat_reading.GetZ() << std::endl;
     }
     m_pcLedsActuator->SetColors(sensor_color);
     switch (state)
@@ -249,7 +260,7 @@ void CRVR::SearchStep()
     rightWheelVelocity = speeds.GetY();
     */
     leftWheelVelocity = m_fDefaultWheelVelocity;
-    rightWheelVelocity = -m_fDefaultWheelVelocity;
+    rightWheelVelocity = m_fDefaultWheelVelocity;
 
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }

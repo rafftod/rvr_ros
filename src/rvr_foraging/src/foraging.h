@@ -15,6 +15,7 @@
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_proximity_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_lidar_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_quaternion_sensor.h>
+#include <argos3/plugins/robots/rvr/control_interface/ci_rvr_light_sensor.h>
 
 #include <argos3/core/utility/math/rng.h>
 
@@ -157,6 +158,8 @@ private:
 
     CCI_RVRQuaternionSensor *m_pcQuaternionSensor;
 
+    CCI_RVRLightSensor *m_pcLightSensor;
+
     CRandom::CRNG *m_pcRng;
 
     CRange<Real> m_cRandomRange;
@@ -201,6 +204,8 @@ private:
     Real lidar_readings[719];
     // quaternion sensor reading
     CQuaternion quat_reading;
+    // light sensor reading
+    Real light;
 
     // boolean that indicates if we are using the real robot
     bool rvr_driven;
