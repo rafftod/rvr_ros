@@ -28,6 +28,8 @@
         <rvr_lidar implementation="default" show_rays="false" />
         <rvr_quaternion implementation="default" />
         <rvr_light implementation="default" show_rays="true"/>
+        <rvr_imu implementation="default" />
+        <rvr_velocity implementation="default" />
       </sensors>
       <params velocity="5"
               rvr_driven="false"/>
