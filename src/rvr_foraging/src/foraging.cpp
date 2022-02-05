@@ -182,7 +182,6 @@ void CRVR::ControlStep()
         quat_reading = m_pcQuaternionSensor->GetReading().Orientation;
         light = m_pcLightSensor->GetReading().Value;
         auto velocity_reading = m_pcVelocitySensor->GetReading();
-        std::cout << velocity_reading << std::endl;
         pitch = m_pcImuSensor->GetReading().Pitch;
         roll = m_pcImuSensor->GetReading().Roll;
         yaw = m_pcImuSensor->GetReading().Yaw;
