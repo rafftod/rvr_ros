@@ -18,6 +18,7 @@
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_light_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_velocity_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_imu_sensor.h>
+#include <argos3/plugins/robots/rvr/control_interface/ci_rvr_locator_sensor.h>
 
 #include <argos3/core/utility/math/rng.h>
 
@@ -166,6 +167,8 @@ private:
 
     CCI_RVRIMUSensor *m_pcImuSensor;
 
+    CCI_RVRLocatorSensor *m_pcLocatorSensor;
+
     CRandom::CRNG *m_pcRng;
 
     CRange<Real> m_cRandomRange;
@@ -216,6 +219,8 @@ private:
     Real XVelocity, YVelocity;
     // IMU readings
     CRadians pitch, roll, yaw;
+    // Position reading
+    CVector2 locatorPosition;
 
     // boolean that indicates if we are using the real robot
     bool rvr_driven;

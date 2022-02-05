@@ -30,6 +30,7 @@
         <rvr_light implementation="default" show_rays="true"/>
         <rvr_imu implementation="default"/>
         <rvr_velocity implementation="default" />
+        <rvr_locator implementation="default" noise_level=0.01/>
       </sensors>
       <params velocity="5"
               rvr_driven="false"/>
