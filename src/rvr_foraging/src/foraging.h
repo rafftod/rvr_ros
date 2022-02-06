@@ -19,6 +19,7 @@
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_velocity_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_imu_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_locator_sensor.h>
+#include <argos3/plugins/robots/rvr/control_interface/ci_rvr_accelerometer_sensor.h>
 
 #include <argos3/core/utility/math/rng.h>
 
@@ -168,6 +169,8 @@ private:
     CCI_RVRIMUSensor *m_pcImuSensor;
 
     CCI_RVRLocatorSensor *m_pcLocatorSensor;
+
+    CCI_RVRAccelerometerSensor *m_pcAccelerometerSensor;
 
     CRandom::CRNG *m_pcRng;
 

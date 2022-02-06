@@ -16,6 +16,7 @@ CRVR::CRVR() : m_pcWheels(NULL),
                m_pcVelocitySensor(NULL),
                m_pcImuSensor(NULL),
                m_pcLocatorSensor(NULL),
+               m_pcAccelerometerSensor(NULL),
                sensor_color(CColor::GREEN),
                m_fDefaultWheelVelocity(155.5f),
                rvr_driven(false),
@@ -73,6 +74,7 @@ void CRVR::Init(TConfigurationNode &t_node)
     m_pcVelocitySensor = GetSensor<CCI_RVRVelocitySensor>("rvr_velocity");
     m_pcImuSensor = GetSensor<CCI_RVRIMUSensor>("rvr_imu");
     m_pcLocatorSensor = GetSensor<CCI_RVRLocatorSensor>("rvr_locator");
+    m_pcAccelerometerSensor = GetSensor<CCI_RVRAccelerometerSensor>("rvr_accelerometer");
     m_pcRng = CRandom::CreateRNG("argos");
     m_cRandomRange.SetMax(1.0);
     /*
@@ -188,7 +190,8 @@ void CRVR::ControlStep()
         roll = m_pcImuSensor->GetReading().Roll;
         yaw = m_pcImuSensor->GetReading().Yaw;
         locatorPosition = m_pcLocatorSensor->GetReading().Position;
-        std::cout << locatorPosition << "\n";
+        auto acceleration = m_pcAccelerometerSensor->GetReading().Acceleration;
+        std::cout << acceleration << "\n";
     }
     m_pcLedsActuator->SetColors(sensor_color);
     switch (state)
