@@ -20,6 +20,7 @@
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_imu_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_locator_sensor.h>
 #include <argos3/plugins/robots/rvr/control_interface/ci_rvr_accelerometer_sensor.h>
+#include <argos3/plugins/robots/rvr/control_interface/ci_rvr_gyroscope_sensor.h>
 
 #include <argos3/core/utility/math/rng.h>
 
@@ -78,40 +79,43 @@ public:
     virtual ~CRVR() {}
 
     /*
-    * This function initializes the controller.
-    * The 't_node' variable points to the <parameters> section in the XML
-    * file in the <controllers><epuck_obstacleavoidance_controller> section.
-    */
+     * This function initializes the controller.
+     * The 't_node' variable points to the <parameters> section in the XML
+     * file in the <controllers><epuck_obstacleavoidance_controller> section.
+     */
     virtual void Init(TConfigurationNode &t_node);
 
     /*
-    * This function is called once every time step.
-    * The length of the time step is set in the XML file.
-    */
+     * This function is called once every time step.
+     * The length of the time step is set in the XML file.
+     */
     virtual void ControlStep();
 
     /*
-    * This function resets the controller to its state right after the
-    * Init().
-    * It is called when you press the reset button in the GUI.
-    * In this example controller there is no need for resetting anything,
-    * so the function could have been omitted. It's here just for
-    * completeness.
-    */
+     * This function resets the controller to its state right after the
+     * Init().
+     * It is called when you press the reset button in the GUI.
+     * In this example controller there is no need for resetting anything,
+     * so the function could have been omitted. It's here just for
+     * completeness.
+     */
     virtual void Reset() {}
 
     /*
-    * Called to cleanup what done by Init() when the experiment finishes.
-    * In this example controller there is no need for clean anything up,
-    * so the function could have been omitted. It's here just for
-    * completeness.
-    */
+     * Called to cleanup what done by Init() when the experiment finishes.
+     * In this example controller there is no need for clean anything up,
+     * so the function could have been omitted. It's here just for
+     * completeness.
+     */
     virtual void Destroy() {}
 
     // ROS methods
-    virtual void InitRos(); //must be called in Init
+    virtual void InitRos(); // must be called in Init
 
-    virtual void RosControlStep(); //must be called in ControlStep
+    virtual void RosControlStep(); // must be called in ControlStep
+
+    /* Methods that handles virtual sensors */
+    virtual void VirtualSense();
 
     /* Handler for the ground color sensor data from RVR driver */
     virtual void ColorHandler(const std_msgs::ColorRGBA &msg);
@@ -147,7 +151,7 @@ public:
     virtual void OdometryUpdate();
 
 private:
-    /* These are pointers to the different sensors 
+    /* These are pointers to the different sensors
     and actuators the RVR implements. */
 
     CCI_RVRWheelsActuator *m_pcWheels;
@@ -171,6 +175,8 @@ private:
     CCI_RVRLocatorSensor *m_pcLocatorSensor;
 
     CCI_RVRAccelerometerSensor *m_pcAccelerometerSensor;
+
+    CCI_RVRGyroscopeSensor *m_pcGyroscopeSensor;
 
     CRandom::CRNG *m_pcRng;
 
@@ -224,6 +230,10 @@ private:
     CRadians pitch, roll, yaw;
     // Position reading
     CVector2 locatorPosition;
+    // Accelerometer readings
+    CVector3 acceleration;
+    // Gyroscope angular velocity readings
+    CVector3 angularVelocity;
 
     // boolean that indicates if we are using the real robot
     bool rvr_driven;
@@ -231,13 +241,13 @@ private:
     // current state
     State state;
 
-    //odometry variables
+    // odometry variables
     double leftStepsDiff, rightStepsDiff;
     double leftStepsPrev, rightStepsPrev;
     double xPos, yPos, theta;
     double deltaSteps, deltaTheta;
     double calibAngle, calibStep;
-    //random walk parameters
+    // random walk parameters
     int randomWalk;
     double mu, gamma;
     double lMin, bias;
@@ -257,7 +267,7 @@ private:
     // turn back info
     double starting_theta;
 
-    //clocks
+    // clocks
     ros::Time currentTime, lastTime;
 };
 

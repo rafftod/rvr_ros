@@ -17,6 +17,7 @@ CRVR::CRVR() : m_pcWheels(NULL),
                m_pcImuSensor(NULL),
                m_pcLocatorSensor(NULL),
                m_pcAccelerometerSensor(NULL),
+               m_pcGyroscopeSensor(NULL),
                sensor_color(CColor::GREEN),
                m_fDefaultWheelVelocity(155.5f),
                rvr_driven(false),
@@ -75,6 +76,7 @@ void CRVR::Init(TConfigurationNode &t_node)
     m_pcImuSensor = GetSensor<CCI_RVRIMUSensor>("rvr_imu");
     m_pcLocatorSensor = GetSensor<CCI_RVRLocatorSensor>("rvr_locator");
     m_pcAccelerometerSensor = GetSensor<CCI_RVRAccelerometerSensor>("rvr_accelerometer");
+    m_pcGyroscopeSensor = GetSensor<CCI_RVRGyroscopeSensor>("rvr_gyroscope");
     m_pcRng = CRandom::CreateRNG("argos");
     m_cRandomRange.SetMax(1.0);
     /*
@@ -168,30 +170,34 @@ void CRVR::InitRos()
     lastTime = ros::Time::now();
 }
 
+void CRVR::VirtualSense() {
+    // virtual sense
+    sensor_color = m_pcColorSensor->GetReading();
+    for (short int i = 0; i < 8; ++i)
+    {
+        prox_readings[i] = m_pcProximitySensor->GetReading(i).Value;
+    }
+    for (short int i = 0; i < 719; ++i)
+    {
+        lidar_readings[i] = m_pcLidarSensor->GetReading(i).Value;
+    }
+    quat_reading = m_pcQuaternionSensor->GetReading().Orientation;
+    light = m_pcLightSensor->GetReading().Value;
+    auto velocity_reading = m_pcVelocitySensor->GetReading();
+    pitch = m_pcImuSensor->GetReading().Pitch;
+    roll = m_pcImuSensor->GetReading().Roll;
+    yaw = m_pcImuSensor->GetReading().Yaw;
+    locatorPosition = m_pcLocatorSensor->GetReading().Position;
+    acceleration = m_pcAccelerometerSensor->GetReading().Acceleration;
+    angularVelocity = m_pcGyroscopeSensor->GetReading().AngularVelocity;
+    std::cout << angularVelocity << "\n";
+}
+
 void CRVR::ControlStep()
 {
-
     if (!rvr_driven)
     {
-        // virtual sense
-        sensor_color = m_pcColorSensor->GetReading();
-        for (short int i = 0; i < 8; ++i)
-        {
-            prox_readings[i] = m_pcProximitySensor->GetReading(i).Value;
-        }
-        for (short int i = 0; i < 719; ++i)
-        {
-            lidar_readings[i] = m_pcLidarSensor->GetReading(i).Value;
-        }
-        quat_reading = m_pcQuaternionSensor->GetReading().Orientation;
-        light = m_pcLightSensor->GetReading().Value;
-        auto velocity_reading = m_pcVelocitySensor->GetReading();
-        pitch = m_pcImuSensor->GetReading().Pitch;
-        roll = m_pcImuSensor->GetReading().Roll;
-        yaw = m_pcImuSensor->GetReading().Yaw;
-        locatorPosition = m_pcLocatorSensor->GetReading().Position;
-        auto acceleration = m_pcAccelerometerSensor->GetReading().Acceleration;
-        std::cout << acceleration << "\n";
+        VirtualSense();
     }
     m_pcLedsActuator->SetColors(sensor_color);
     switch (state)
@@ -263,7 +269,7 @@ void CRVR::SearchStep()
     rightWheelVelocity = speeds.GetY();
     */
     leftWheelVelocity = m_fDefaultWheelVelocity;
-    rightWheelVelocity = m_fDefaultWheelVelocity;
+    rightWheelVelocity = -m_fDefaultWheelVelocity;
 
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }

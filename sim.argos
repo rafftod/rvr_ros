@@ -31,6 +31,7 @@
         <rvr_imu implementation="default"/>
         <rvr_velocity implementation="default" />
         <rvr_accelerometer implementation="default"/>
+        <rvr_gyroscope implementation="default"/>
         <rvr_locator implementation="default" />
       </sensors>
       <params velocity="5"
