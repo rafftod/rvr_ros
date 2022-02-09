@@ -30,8 +30,8 @@
         <rvr_light implementation="default" show_rays="true"/>
         <rvr_imu implementation="default"/>
         <rvr_velocity implementation="default" />
-        <rvr_accelerometer implementation="default"/>
-        <rvr_gyroscope implementation="default"/>
+        <rvr_accelerometer implementation="default" noise_level="0.01"/>
+        <rvr_gyroscope implementation="default" noise_level="0.01"/>
         <rvr_locator implementation="default" />
       </sensors>
       <params velocity="5"

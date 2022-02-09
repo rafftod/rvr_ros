@@ -190,7 +190,6 @@ void CRVR::VirtualSense() {
     locatorPosition = m_pcLocatorSensor->GetReading().Position;
     acceleration = m_pcAccelerometerSensor->GetReading().Acceleration;
     angularVelocity = m_pcGyroscopeSensor->GetReading().AngularVelocity;
-    std::cout << angularVelocity << "\n";
 }
 
 void CRVR::ControlStep()
