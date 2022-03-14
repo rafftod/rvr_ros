@@ -41,7 +41,7 @@ These are structured as follows :
 ```
 rvr_ros/
 ├─ src/
-│  ├─ rvr_foraging/
+│  ├─ rvr_ros/
 │  │  ├─ src/
 │  │  │  ├─ foraging.h
 │  │  │  ├─ foraging.cpp
@@ -148,7 +148,7 @@ source ~/.bashrc
 Create a symbolic link to the SDK in the workspace :
 
 ```
-ln -s ~/sphero-sdk-raspberrypi-python/sphero_sdk/ ~/rvr_ros/src/rvr_foraging/src/
+ln -s ~/sphero-sdk-raspberrypi-python/sphero_sdk/ ~/rvr_ros/src/rvr_ros/src/
 ```
 
 Rename the LIDAR port to /dev/ydlidar
