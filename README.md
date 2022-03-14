@@ -1,4 +1,4 @@
-# RVR Foraging
+# RVR ROS Workspace
 
 This repository contains everything needed to use ARGoS and ROS to run experiments with the Sphero RVR, with additional sensors ([Terabee Teraranger Multiflex](https://www.terabee.com/shop/lidar-tof-multi-directional-arrays/teraranger-multiflex/) and [YDLIDAR X4](https://www.ydlidar.com/products/view/5.html)).
 
@@ -112,8 +112,8 @@ First clone the repository :
 
 ```
 cd ~
-git clone https://github.com/rafftod/rvr_foraging rvr_foraging
-cd rvr_foraging
+git clone https://github.com/rafftod/rvr_ros rvr_ros
+cd rvr_ros
 git submodule init
 git submodule update
 ```
@@ -148,7 +148,7 @@ source ~/.bashrc
 Create a symbolic link to the SDK in the workspace :
 
 ```
-ln -s ~/sphero-sdk-raspberrypi-python/sphero_sdk/ ~/rvr_foraging/src/rvr_foraging/src/
+ln -s ~/sphero-sdk-raspberrypi-python/sphero_sdk/ ~/rvr_ros/src/rvr_ros/src/
 ```
 
 Rename the LIDAR port to /dev/ydlidar
@@ -172,7 +172,7 @@ You can run each of the following node by entering the corresponding command :
 ### RVR driver
 
 ```
-rosrun rvr_foraging rvr_driver.py
+rosrun rvr_ros rvr_driver.py
 ```
 
 ### ARGoS controller
