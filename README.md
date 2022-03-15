@@ -23,11 +23,31 @@ This implementation currently supports :
 -   RGB LEDs
 -   Proximity sensors
 -   LIDAR
+-   IMU
+-   Quaternion sensor
+-   Gyroscope
+-   Accelerometer
 
 ### Architecture
 
 The architecture is as follows :
-![RVR ROS mode of functioning](https://i.imgur.com/2DQQTra.png "RVR ROS")
+```mermaid
+sequenceDiagram
+    participant RVR as RVR Sensors and actuators
+    participant D as Driver
+    participant C as ARGoS sontrol software
+    participant AD as Additional sensors
+    RVR->>D: Send readings through UART
+    par
+        D->>C: Send sensor information
+    and
+        AD->>C: Send sensor information
+    end
+    C->>C: Computation
+    C->>D: Send actuators values
+    D->>RVR: Send values through UART
+```
+<!-- ![RVR ROS mode of functioning](https://i.imgur.com/2DQQTra.png "RVR ROS") -->
 
 It revolves around 4 main nodes :
 
@@ -63,7 +83,11 @@ These include the implementation of the ARGoS controller and its ROS node.
 
 This is the bridge between the ARGoS controller and the RVR API.
 
-Note: exiting this script with Ctrl+C does not always work and sometimes requires a reboot of the robot.
+Note: this script, as others, need to be stopped with Ctrl+Z.
+
+#### driving_test.py
+
+This script tests that the robot can use its wheels correctly, with ROS and the robot API.
 
 #### rvr.argos
 
