@@ -23,8 +23,8 @@
 		    <rvr_rgb_leds implementation="default" medium="leds"/>
       </actuators>
       <sensors>
-        <rvr_ground implementation="rot_z_only"/>
-        <rvr_proximity implementation="default" show_rays="false" />
+        <rvr_ground implementation="rot_z_only" noise_mean="0" noise_std="5"/>
+        <rvr_proximity implementation="default" show_rays="true" />
         <rvr_lidar implementation="default" show_rays="false" />
         <rvr_quaternion implementation="default" />
         <rvr_light implementation="default" show_rays="true"/>
@@ -68,7 +68,7 @@
         standard deviation is 360 degrees.
     -->
     <distribute>
-      <position method="uniform" min="-2,-2,0" max="2,2,0" />
+      <position method="gaussian" mean="0,0.5,0" std_dev="0,0,0"/>
       <orientation method="gaussian" mean="0,0,0" std_dev="360,0,0" />
       <entity quantity="1" max_trials="100">
         <rvr id="fb">

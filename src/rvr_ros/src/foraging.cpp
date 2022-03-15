@@ -44,27 +44,27 @@ CRVR::CRVR() : m_pcWheels(NULL),
 void CRVR::Init(TConfigurationNode &t_node)
 {
     /*
-    * Get sensor/actuator handles
-    *
-    * The passed string (ex. "differential_steering") corresponds to the
-    * XML tag of the device whose handle we want to have. For a list of
-    * allowed values, type at the command prompt:
-    *
-    * $ argos3 -q actuators
-    *
-    * to have a list of all the possible actuators, or
-    *
-    * $ argos3 -q sensors
-    *
-    * to have a list of all the possible sensors.
-    *
-    * NOTE: ARGoS creates and initializes actuators and sensors
-    * internally, on the basis of the lists provided the configuration
-    * file at the <controllers><epuck_obstacleavoidance><actuators> and
-    * <controllers><epuck_obstacleavoidance><sensors> sections. If you forgot to
-    * list a device in the XML and then you request it here, an error
-    * occurs.
-    */
+     * Get sensor/actuator handles
+     *
+     * The passed string (ex. "differential_steering") corresponds to the
+     * XML tag of the device whose handle we want to have. For a list of
+     * allowed values, type at the command prompt:
+     *
+     * $ argos3 -q actuators
+     *
+     * to have a list of all the possible actuators, or
+     *
+     * $ argos3 -q sensors
+     *
+     * to have a list of all the possible sensors.
+     *
+     * NOTE: ARGoS creates and initializes actuators and sensors
+     * internally, on the basis of the lists provided the configuration
+     * file at the <controllers><epuck_obstacleavoidance><actuators> and
+     * <controllers><epuck_obstacleavoidance><sensors> sections. If you forgot to
+     * list a device in the XML and then you request it here, an error
+     * occurs.
+     */
     m_pcWheels = GetActuator<CCI_RVRWheelsActuator>("rvr_wheels");
     m_pcColorSensor = GetSensor<CCI_RVRGroundColorSensor>("rvr_ground");
     m_pcLedsActuator = GetActuator<CCI_RVRRGBLEDsActuator>("rvr_rgb_leds");
@@ -80,12 +80,12 @@ void CRVR::Init(TConfigurationNode &t_node)
     m_pcRng = CRandom::CreateRNG("argos");
     m_cRandomRange.SetMax(1.0);
     /*
-    * Parse the configuration file
-    *
-    * The user defines this part. Here, the algorithm accepts three
-    * parameters and it's nice to put them in the config file so we don't
-    * have to recompile if we want to try other settings.
-    */
+     * Parse the configuration file
+     *
+     * The user defines this part. Here, the algorithm accepts three
+     * parameters and it's nice to put them in the config file so we don't
+     * have to recompile if we want to try other settings.
+     */
     GetNodeAttributeOrDefault(t_node, "velocity", m_fDefaultWheelVelocity, m_fDefaultWheelVelocity);
     leftWheelVelocity = m_fDefaultWheelVelocity;
     rightWheelVelocity = m_fDefaultWheelVelocity;
@@ -147,7 +147,7 @@ void CRVR::InitRos()
     mapping_laser_pub = rosNode.advertise<sensor_msgs::LaserScan>("/scan", 10);
     mapping_odom_pub = rosNode.advertise<nav_msgs::Odometry>("/odom", 10);
 
-    //init laser scan
+    // init laser scan
     ss.str("");
     ss << name.str() << "/base_laser";
     laserMsg.header.frame_id = ss.str();
@@ -170,7 +170,8 @@ void CRVR::InitRos()
     lastTime = ros::Time::now();
 }
 
-void CRVR::VirtualSense() {
+void CRVR::VirtualSense()
+{
     // virtual sense
     sensor_color = m_pcColorSensor->GetReading();
     for (short int i = 0; i < 8; ++i)
@@ -262,13 +263,13 @@ void CRVR::SearchStep()
     {
         stepLength--;
     }
-    /*
+    // /*
     CVector2 speeds = ComputeWheelsVelocityFromVector(CVector2(1.0, stepAngle));
     leftWheelVelocity = speeds.GetX();
     rightWheelVelocity = speeds.GetY();
-    */
-    leftWheelVelocity = m_fDefaultWheelVelocity;
-    rightWheelVelocity = -m_fDefaultWheelVelocity;
+    // */
+    // leftWheelVelocity = m_fDefaultWheelVelocity;
+    // rightWheelVelocity = -m_fDefaultWheelVelocity;
 
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
@@ -300,8 +301,8 @@ void CRVR::HomingStep()
     CVector2 pointing_vector(cos(theta), sin(theta));
     // extract angle between the vectors
     double angle = acos(direction.DotProduct(pointing_vector) / (direction.Length() * pointing_vector.Length()));
-    //std::cout << "theta : " << theta << std::endl;
-    //std::cout << "angle : " << angle << std::endl;
+    // std::cout << "theta : " << theta << std::endl;
+    // std::cout << "angle : " << angle << std::endl;
     if (std::abs(angle) <= 0.1)
     {
         leftWheelVelocity = m_fDefaultWheelVelocity;
@@ -377,7 +378,7 @@ CVector2 CRVR::ComputeWheelsVelocityFromVector(CVector2 c_vector_to_follow)
 
 void CRVR::RosControlStep()
 {
-    static tf::TransformBroadcaster br; //needed for tf transform
+    static tf::TransformBroadcaster br; // needed for tf transform
 
     tf::Transform transform;
     tf::Quaternion q;
@@ -423,7 +424,7 @@ void CRVR::RosControlStep()
 
     mapping_odom_pub.publish(odomMsg);
 
-    //odometry transform
+    // odometry transform
     geometry_msgs::TransformStamped odomTrans;
     odomTrans.header.stamp = odomMsg.header.stamp;
     odomTrans.header.frame_id = odomMsg.header.frame_id;
@@ -432,8 +433,8 @@ void CRVR::RosControlStep()
     odomTrans.transform.translation.y = yPos;
     odomTrans.transform.translation.z = 0.0;
     odomTrans.transform.rotation = odomQuat;
-    //std::cout << "x : " << xPos << ", y : " << yPos << std::endl;
-    //std::cout << "theta : " << theta << std::endl;
+    // std::cout << "x : " << xPos << ", y : " << yPos << std::endl;
+    // std::cout << "theta : " << theta << std::endl;
     br.sendTransform(odomTrans);
 
     if (!rvr_driven)
@@ -469,7 +470,7 @@ void CRVR::RosControlStep()
 
 void CRVR::OdometryUpdate()
 {
-    //odometry computation
+    // odometry computation
     leftStepsDiff = leftWheelVelocity * MOT_STEP_DIST * calibStep; // 750 given from tests
     rightStepsDiff = rightWheelVelocity * MOT_STEP_DIST * calibStep;
 
