@@ -42,7 +42,8 @@ def main():
 
     rvr.reset_yaw()
 
-    main()
+    test_loop()
 
-if __name__=='__main__':
+
+if __name__ == "__main__":
     main()
