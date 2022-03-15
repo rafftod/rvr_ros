@@ -39,17 +39,17 @@ sequenceDiagram
     participant AD as Additional sensors
     RVR->>D: Send readings through UART
     par
-        D->>C: Send sensor information
+        D->>C: Send sensor information with ROS
     and
-        AD->>C: Send sensor information
+        AD->>C: Send sensor information with ROS
     end
     C->>C: Computation
-    C->>D: Send actuators values
+    C->>D: Send actuators values with ROS
     D->>RVR: Send values through UART
 ```
 <!-- ![RVR ROS mode of functioning](https://i.imgur.com/2DQQTra.png "RVR ROS") -->
 
-It revolves around 4 main nodes :
+It revolves around 4 main ROS nodes :
 
 -   The RVR driver node that enables the use of the real robot sensors and actuators
 -   The ARGoS node that centralizes the control software
