@@ -4,3 +4,4 @@ devel/
 .vscode/
 .idea/
 *.png
+*sphero_sdk*
