@@ -13,63 +13,67 @@ import time
 import rospy
 import os
 import sys
-
+from typing import Dict
+from driver_logger import DriverLogger
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 from sphero_sdk import SpheroRvrObserver
 
-rvr = SpheroRvrObserver()
 
-params = {"left_velocity": -0.5, "right_velocity": 0.5}
+class DrivingTest(DriverLogger):
 
-# time between 2 battery percentage measurements in seconds
-BATTERY_MEASURE_TIMEOUT = 120
+    speed_params = {"left_velocity": -0.5, "right_velocity": 0.5}
+    BATTERY_MEASURE_TIMEOUT = 120
 
-rospy.init_node("rvr_driving_test")
+    def __init__(self) -> None:
+        # init ROS node
+        rospy.init_node("rvr_driving_test")
+        # init robot API connection
+        self.log("Starting RVR API...")
+        self.rvr = SpheroRvrObserver()
+        # sensor values
+        self.battery_percentage: float = 0
+        self.setup_rvr()
 
-# battery percentage holder
-battery_percentage: int
+    def setup_rvr(self) -> None:
+        self.log("Waking up RVR...")
+        self.rvr.wake()
+        time.sleep(2)
+        self.rvr.reset_yaw()
 
+    def battery_percentage_handler(self, bp: Dict[str, float]) -> None:
+        self.battery_percentage = bp.get("percentage")
 
-def battery_percentage_handler(bp):
-    global battery_percentage
-    battery_percentage = bp
-
-
-def test_loop():
-    last_measure_time = datetime.now().timestamp()
-    rvr.get_battery_percentage(handler=battery_percentage_handler)
-    # wait for battery response
-    time.sleep(1)
-    print(f"Current battery level : {battery_percentage}")
-    while not rospy.is_shutdown():
-        try:
-            rvr.drive_tank_si_units(**params)
-            if datetime.now().timestamp() - last_measure_time > BATTERY_MEASURE_TIMEOUT:
-                rvr.get_battery_percentage(handler=battery_percentage_handler)
-                # wait for battery response
-                time.sleep(1)
-                print(f"Current battery level : {battery_percentage}")
-                last_measure_time = datetime.now().timestamp()
-            else:
-                time.sleep(1)
-        except KeyboardInterrupt:
-            print("Keyboard interrupted.")
-            # rospy.signal_shutdown()
-            time.sleep(0.5)
-            rvr.close()
-            exit()
-
-
-def main():
-    rvr.wake()
-
-    time.sleep(2)
-
-    rvr.reset_yaw()
-
-    test_loop()
+    def test_loop(self):
+        last_measure_time = datetime.now().timestamp()
+        self.rvr.get_battery_percentage(handler=self.battery_percentage_handler)
+        # wait for battery response
+        time.sleep(1)
+        self.log(f"Current battery level : {self.battery_percentage}")
+        while not rospy.is_shutdown():
+            try:
+                self.rvr.drive_tank_si_units(**self.speed_params)
+                if (
+                    datetime.now().timestamp() - last_measure_time
+                    > self.BATTERY_MEASURE_TIMEOUT
+                ):
+                    self.rvr.get_battery_percentage(
+                        handler=self.battery_percentage_handler
+                    )
+                    # wait for battery response
+                    time.sleep(1)
+                    self.log(f"Current battery level : {self.battery_percentage}")
+                    last_measure_time = datetime.now().timestamp()
+                else:
+                    time.sleep(1)
+            except KeyboardInterrupt:
+                print("Keyboard interrupted.")
+                # rospy.signal_shutdown()
+                time.sleep(0.5)
+                self.rvr.close()
+                exit()
 
 
 if __name__ == "__main__":
-    main()
+    driving_test = DrivingTest()
+    driving_test.test_loop()
