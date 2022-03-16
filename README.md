@@ -35,13 +35,13 @@ The architecture is as follows :
 sequenceDiagram
     participant RVR as RVR Sensors and actuators
     participant D as Driver
-    participant C as ARGoS sontrol software
+    participant C as ARGoS control software
     participant AD as Additional sensors
     RVR->>D: Send readings through UART
     par
-        D->>C: Send sensor information with ROS
+        D-)C: Send sensor information with ROS
     and
-        AD->>C: Send sensor information with ROS
+        AD-)C: Send sensor information with ROS
     end
     C->>C: Computation
     C->>D: Send actuators values with ROS
