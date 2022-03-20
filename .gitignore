@@ -5,3 +5,4 @@ devel/
 .idea/
 *.png
 *sphero_sdk*
+*__pycache__*

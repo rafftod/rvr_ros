@@ -9,4 +9,4 @@ from datetime import datetime
 class DriverLogger:
     @staticmethod
     def log(message: str) -> None:
-        print(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
+        print(f"[{datetime.now().strftime('%H:%M:%S:%f')}] {message}")
