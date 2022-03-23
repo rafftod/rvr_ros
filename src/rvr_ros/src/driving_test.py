@@ -24,7 +24,7 @@ class DrivingTest(DriverLogger):
 
     BATTERY_MEASURE_TIMEOUT: int = 120
     # main loop callback interval (seconds)
-    CALLBACK_INTERVAL_DURATION: int = 0.250
+    CALLBACK_INTERVAL_DURATION: float = 0.250
 
     def __init__(self) -> None:
         # init ROS node

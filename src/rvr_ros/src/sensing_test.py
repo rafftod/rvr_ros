@@ -24,19 +24,24 @@ from sphero_sdk.common.rvr_streaming_services import RvrStreamingServices
 
 class SensingTest(DriverLogger):
 
-    speed_params = {"left_velocity": -0.5, "right_velocity": 0.5}
+    # speed in m/s
+    speed: float = 0.5
+    speed_params: Dict[str, float] = {"left_velocity": 0, "right_velocity": speed}
     BATTERY_MEASURE_TIMEOUT = 120
-    SENSOR_STREAMING_INTERVAL = 500
+    # main loop callback interval (seconds)
+    CALLBACK_INTERVAL_DURATION: float = 0.100
+    SENSOR_STREAMING_INTERVAL: int = int(CALLBACK_INTERVAL_DURATION * 1000)
 
     def __init__(self) -> None:
         # init ROS node
-        rospy.init_node("rvr_driving_test")
+        rospy.init_node("rvr_sensing_test")
         # init robot API connection
         self.log("Starting RVR API...")
         self.rvr = SpheroRvrObserver()
         # sensor values
         # battery
         self.battery_percentage: float = 0
+        self.latest_instruction: int = 0
         # accelerometer
         self.accelerometer_reading: Dict[str, float] = {"X": 0, "Y": 0, "Z": 0}
         # ground color sensor
@@ -61,6 +66,10 @@ class SensingTest(DriverLogger):
         time.sleep(2)
         self.rvr.reset_yaw()
         self.enable_sensors()
+        # create timer for driving callback
+        self.timer = rospy.Timer(
+            rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.test_callback
+        )
 
     """ Robot Handlers """
 
@@ -122,38 +131,32 @@ class SensingTest(DriverLogger):
         )
         self.rvr.sensor_control.start(interval=self.SENSOR_STREAMING_INTERVAL)
 
-    def test_loop(self):
-        last_measure_time = datetime.now().timestamp()
-        self.rvr.get_battery_percentage(handler=self.battery_percentage_handler)
-        # wait for battery response
-        time.sleep(1)
-        self.log(f"Current battery level : {self.battery_percentage}")
-        while not rospy.is_shutdown():
-            try:
-                self.rvr.drive_tank_si_units(**self.speed_params)
-                if (
-                    datetime.now().timestamp() - last_measure_time
-                    > self.BATTERY_MEASURE_TIMEOUT
-                ):
-                    self.rvr.get_battery_percentage(
-                        handler=self.battery_percentage_handler
-                    )
-                    # wait for battery response
-                    time.sleep(1)
-                    self.log(f"Current battery level : {self.battery_percentage}")
-                    last_measure_time = datetime.now().timestamp()
-                else:
-                    time.sleep(1)
-                self.log(self.ground_color.__repr__())
-            except KeyboardInterrupt:
-                self.log("Keyboard interrupted.")
-                # rospy.signal_shutdown()
-                self.rvr.sensor_control.clear()
-                time.sleep(0.5)
-                self.rvr.close()
-                exit()
+    def test_callback(self, timer):
+        current_time = rospy.Time.now().secs
+        # update wheel speed if needed
+        if current_time > 0:
+            if self.latest_instruction == 0:
+                self.latest_instruction = current_time
+            elif current_time - self.latest_instruction > 2:
+                # change driving tread
+                self.speed_params = {
+                    k: abs(s - self.speed) for k, s in self.speed_params.items()
+                }
+                self.latest_instruction = current_time
+        self.log(self.speed_params)
+        # send speeds to API
+        self.rvr.drive_tank_si_units(
+            **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
+        )
 
 
 if __name__ == "__main__":
-    driving_test = SensingTest()
-    driving_test.test_loop()
+    try:
+        sensing_test = SensingTest()
+        rospy.spin()
+    except rospy.ROSInterruptException:
+        print("Keyboard interrupted.")
+        # rospy.signal_shutdown()
+        time.sleep(0.5)
+        sensing_test.rvr.close()
+        exit()
