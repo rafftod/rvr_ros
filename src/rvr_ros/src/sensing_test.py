@@ -13,24 +13,52 @@ import time
 import rospy
 import os
 import sys
-from typing import Dict
+from typing import Dict, List, FrozenSet
 from driver_logger import DriverLogger
 
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 from sphero_sdk import SpheroRvrObserver
 from sphero_sdk.common.rvr_streaming_services import RvrStreamingServices
+from sphero_sdk import Colors
+from sphero_sdk import RvrLedGroups
 
 
 class SensingTest(DriverLogger):
 
-    # speed in m/s
-    speed: float = 0.5
-    speed_params: Dict[str, float] = {"left_velocity": 0, "right_velocity": speed}
-    BATTERY_MEASURE_TIMEOUT = 120
+    ### Loop settings
+
     # main loop callback interval (seconds)
     CALLBACK_INTERVAL_DURATION: float = 0.100
+    # robot API sensor streaming interval (ms)
     SENSOR_STREAMING_INTERVAL: int = int(CALLBACK_INTERVAL_DURATION * 1000)
+    ### Wheel settings
+
+    # speed in m/s
+    speed: float = 0.5
+
+    ### LEDs settings
+
+    ACTIVE_COLOR: Colors = Colors.red
+    INACTIVE_COLOR: Colors = Colors.off
+    BACK_COLOR: Colors = Colors.pink
+
+    LEFT_LEDS: FrozenSet[RvrLedGroups] = frozenset(
+        {
+            RvrLedGroups.headlight_left,
+            RvrLedGroups.battery_door_front,
+            RvrLedGroups.battery_door_rear,
+        }
+    )
+
+    RIGHT_LEDS: FrozenSet[RvrLedGroups] = frozenset(
+        {
+            RvrLedGroups.headlight_right,
+            RvrLedGroups.power_button_front,
+            RvrLedGroups.power_button_rear,
+        }
+    )
+    BATTERY_MEASURE_TIMEOUT = 120
 
     def __init__(self) -> None:
         # init ROS node
@@ -38,6 +66,29 @@ class SensingTest(DriverLogger):
         # init robot API connection
         self.log("Starting RVR API...")
         self.rvr = SpheroRvrObserver()
+        # initial speed
+        self.speed_params: Dict[str, float] = {
+            "left_velocity": 0,
+            "right_velocity": self.speed,
+        }
+        # initial LED settings
+        self.led_settings: Dict[int, Colors] = {
+            # left headlight
+            RvrLedGroups.headlight_left: self.INACTIVE_COLOR,
+            # right headlight
+            RvrLedGroups.headlight_right: self.ACTIVE_COLOR,
+            # left side LED, left half
+            RvrLedGroups.battery_door_front: self.INACTIVE_COLOR,
+            # left side LED, right half
+            RvrLedGroups.battery_door_rear: self.INACTIVE_COLOR,
+            # right side LED, left half
+            RvrLedGroups.power_button_front: self.ACTIVE_COLOR,
+            # right side LED, right half
+            RvrLedGroups.power_button_rear: self.ACTIVE_COLOR,
+            # back LED
+            RvrLedGroups.brakelight_left: self.BACK_COLOR,
+            RvrLedGroups.brakelight_right: self.BACK_COLOR,
+        }
         # sensor values
         # battery
         self.battery_percentage: float = 0
@@ -65,6 +116,7 @@ class SensingTest(DriverLogger):
         self.rvr.wake()
         time.sleep(2)
         self.rvr.reset_yaw()
+        self.rvr.led_control.turn_leds_off()
         self.enable_sensors()
         # create timer for driving callback
         self.timer = rospy.Timer(
@@ -142,11 +194,30 @@ class SensingTest(DriverLogger):
                 self.speed_params = {
                     k: abs(s - self.speed) for k, s in self.speed_params.items()
                 }
+                # update LEDs
+                # left
+                for led_id in self.LEFT_LEDS:
+                    self.led_settings[led_id] = (
+                        self.ACTIVE_COLOR
+                        if self.speed_params["left_velocity"] > 0
+                        else self.INACTIVE_COLOR
+                    )
+                # right
+                for led_id in self.RIGHT_LEDS:
+                    self.led_settings[led_id] = (
+                        self.ACTIVE_COLOR
+                        if self.speed_params["right_velocity"] > 0
+                        else self.INACTIVE_COLOR
+                    )
                 self.latest_instruction = current_time
         self.log(self.speed_params)
         # send speeds to API
         self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
+        )
+        # update led values
+        self.rvr.led_control.set_multiple_leds_with_enums(
+            leds=list(self.led_settings.keys()), colors=list(self.led_settings.values())
         )
 
 
@@ -155,8 +226,7 @@ if __name__ == "__main__":
         sensing_test = SensingTest()
         rospy.spin()
     except rospy.ROSInterruptException:
-        print("Keyboard interrupted.")
-        # rospy.signal_shutdown()
         time.sleep(0.5)
+        sensing_test.rvr.led_control.turn_leds_off()
         sensing_test.rvr.close()
         exit()
