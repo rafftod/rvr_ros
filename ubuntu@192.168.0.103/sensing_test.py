@@ -16,14 +16,6 @@ import sys
 from typing import Dict, List, FrozenSet
 from driver_logger import DriverLogger
 
-from std_msgs.msg import Float32MultiArray, ColorRGBA, MultiArrayDimension
-from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Twist, Quaternion, Pose, Vector3
-from sensor_msgs.msg import Imu, Illuminance
-import tf
-import tf_conversions
-from math import pi
-
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 from sphero_sdk import SpheroRvrObserver
@@ -32,7 +24,7 @@ from sphero_sdk import Colors
 from sphero_sdk import RvrLedGroups
 
 
-class RobotDriver(DriverLogger):
+class SensingTest(DriverLogger):
 
     ### Loop settings
 
@@ -107,7 +99,7 @@ class RobotDriver(DriverLogger):
         self.ground_color: Dict[str, int] = {"R": 0, "G": 0, "B": 0}
         # gyroscope
         self.angular_velocity: Dict[str, float] = {"X": 0, "Y": 0, "Z": 0}
-        # IMU angles in degrees
+        # IMU
         self.imu_reading: Dict[str, float] = {"Pitch": 0, "Roll": 0, "Yaw": 0}
         # light sensor
         self.ambient_light: float = 0
@@ -126,32 +118,10 @@ class RobotDriver(DriverLogger):
         self.rvr.reset_yaw()
         self.rvr.led_control.turn_leds_off()
         self.enable_sensors()
-        self.create_ros_publishers()
         # create timer for driving callback
         self.timer = rospy.Timer(
             rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.test_callback
         )
-        # create timer for sensor send callback
-        self.sensor_pub_timer = rospy.Timer(
-            rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.sensor_pub_callback
-        )
-
-    def create_ros_publishers(self) -> None:
-        # Ground color as RGB
-        self.ground_color_pub = rospy.Publisher(
-            "ground_color", ColorRGBA, queue_size=10
-        )
-        # IMU message includes :
-        # - imu orientation
-        # - gyroscope velocities
-        # - linear acceleration
-        self.imu_pub = rospy.Publisher("imu", Imu, queue_size=10)
-        # Ambient light
-        self.light_pub = rospy.Publisher("ambient_light", Illuminance, queue_size=10)
-        # Odometry message includes :
-        # - Pose : position (locator) and orientation (quaternion)
-        # - Twist : angular (gyro) and linear (velocity) velocities
-        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
 
     """ Robot Handlers """
 
@@ -159,7 +129,6 @@ class RobotDriver(DriverLogger):
         self.battery_percentage = bp.get("percentage")
 
     def accelerometer_handler(self, data: Dict[str, float]) -> None:
-        print(data["Accelerometer"])
         self.accelerometer_reading.update(data["Accelerometer"])
 
     def ground_sensor_handler(self, data) -> None:
@@ -241,6 +210,7 @@ class RobotDriver(DriverLogger):
                         else self.INACTIVE_COLOR
                     )
                 self.latest_instruction = current_time
+        self.log(self.speed_params)
         # send speeds to API
         self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
@@ -250,72 +220,10 @@ class RobotDriver(DriverLogger):
             leds=list(self.led_settings.keys()), colors=list(self.led_settings.values())
         )
 
-    def publish_color(self) -> None:
-        """Sends the stored ground color as an RGBA ROS message."""
-        color_msg = ColorRGBA()
-        color_msg.r = self.ground_color["R"]
-        color_msg.g = self.ground_color["G"]
-        color_msg.b = self.ground_color["B"]
-        color_msg.a = 255
-        self.ground_color_pub.publish(color_msg)
-
-    def publish_imu(self):
-        imu_msg = Imu()
-        imu_msg.header.stamp = rospy.Time.now()
-        # build quaterion by converting degrees to radians
-        imu_msg.orientation = Quaternion(
-            *tf_conversions.transformations.quaternion_from_euler(
-                self.imu_reading.get("Roll") * pi / 180,
-                self.imu_reading.get("Pitch") * pi / 180,
-                self.imu_reading.get("Yaw") * pi / 180,
-            )
-        )
-        # convert degrees/sec to radians/sec
-        imu_msg.angular_velocity = Vector3(
-            self.angular_velocity.get("X") * pi / 180,
-            self.angular_velocity.get("Y") * pi / 180,
-            self.angular_velocity.get("Z") * pi / 180,
-        )
-        # convert values from g to m/s^2
-        imu_msg.linear_acceleration = Vector3(
-            self.accelerometer_reading.get("X") * 9.81,
-            self.accelerometer_reading.get("Y") * 9.81,
-            self.accelerometer_reading.get("Z") * 9.81,
-        )
-        self.imu_pub.publish(imu_msg)
-
-    def publish_light(self):
-        light_msg = Illuminance()
-        light_msg.header.stamp = rospy.Time.now()
-        light_msg.illuminance = self.ambient_light
-        self.light_pub.publish(light_msg)
-
-    def publish_odom(self):
-        odom_msg = Odometry()
-        odom_msg.header.stamp = rospy.Time.now()
-        odom_msg.pose.pose.position.x = self.location.get("X")
-        odom_msg.pose.pose.position.y = self.location.get("Y")
-        odom_msg.pose.pose.position.z = 0
-        odom_quat = Quaternion(**{k.lower(): v for k, v in self.quat_reading.items()})
-        odom_msg.pose.pose.orientation = odom_quat
-        odom_msg.twist.twist.angular = Vector3(
-            **{k.lower(): v for k, v in self.angular_velocity.items()}
-        )
-        odom_msg.twist.twist.linear = Vector3(
-            **{k.lower(): v for k, v in self.velocity_reading.items()}
-        )
-        self.odom_pub.publish(odom_msg)
-
-    def sensor_pub_callback(self, timer):
-        # TODO : refactor to use kwargs
-        # TODO : convert all units to correct ROS unit messages
-        self.publish_color()
-        self.publish_imu()
-
 
 if __name__ == "__main__":
     try:
-        sensing_test = RobotDriver()
+        sensing_test = SensingTest()
         rospy.spin()
     except rospy.ROSInterruptException:
         time.sleep(0.5)

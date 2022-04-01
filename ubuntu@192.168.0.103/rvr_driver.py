@@ -241,6 +241,7 @@ class RobotDriver(DriverLogger):
                         else self.INACTIVE_COLOR
                     )
                 self.latest_instruction = current_time
+        self.log(self.speed_params)
         # send speeds to API
         self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
@@ -253,6 +254,7 @@ class RobotDriver(DriverLogger):
     def publish_color(self) -> None:
         """Sends the stored ground color as an RGBA ROS message."""
         color_msg = ColorRGBA()
+        color_msg.header.stamp = rospy.Time.now()
         color_msg.r = self.ground_color["R"]
         color_msg.g = self.ground_color["G"]
         color_msg.b = self.ground_color["B"]
@@ -270,17 +272,15 @@ class RobotDriver(DriverLogger):
                 self.imu_reading.get("Yaw") * pi / 180,
             )
         )
-        # convert degrees/sec to radians/sec
         imu_msg.angular_velocity = Vector3(
-            self.angular_velocity.get("X") * pi / 180,
-            self.angular_velocity.get("Y") * pi / 180,
-            self.angular_velocity.get("Z") * pi / 180,
+            self.angular_velocity.get("X"),
+            self.angular_velocity.get("Y"),
+            self.angular_velocity.get("Z"),
         )
-        # convert values from g to m/s^2
         imu_msg.linear_acceleration = Vector3(
-            self.accelerometer_reading.get("X") * 9.81,
-            self.accelerometer_reading.get("Y") * 9.81,
-            self.accelerometer_reading.get("Z") * 9.81,
+            self.accelerometer_reading.get("X"),
+            self.accelerometer_reading.get("Y"),
+            self.accelerometer_reading.get("Z"),
         )
         self.imu_pub.publish(imu_msg)
 
