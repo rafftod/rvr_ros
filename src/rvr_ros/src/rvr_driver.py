@@ -66,7 +66,6 @@ class RobotDriver(DriverLogger):
             RvrLedGroups.power_button_rear,
         }
     )
-    BATTERY_MEASURE_TIMEOUT = 120
 
     def __init__(self) -> None:
         # init ROS node
@@ -158,30 +157,49 @@ class RobotDriver(DriverLogger):
     def battery_percentage_handler(self, bp: Dict[str, float]) -> None:
         self.battery_percentage = bp.get("percentage")
 
-    def accelerometer_handler(self, data: Dict[str, float]) -> None:
-        print(data["Accelerometer"])
-        self.accelerometer_reading.update(data["Accelerometer"])
+    def accelerometer_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.accelerometer_reading.update(
+            (k, data["Accelerometer"][k])
+            for k in self.accelerometer_reading.keys() & data["Accelerometer"].keys()
+        )
 
-    def ground_sensor_handler(self, data) -> None:
-        self.ground_color.update(data["ColorDetection"])
+    def ground_sensor_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.ground_color.update(
+            (k, data["ColorDetection"][k])
+            for k in self.ground_color.keys() & data["ColorDetection"].keys()
+        )
 
-    def gyroscope_handler(self, data) -> None:
-        self.angular_velocity.update(data["Gyroscope"])
+    def gyroscope_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.angular_velocity.update(
+            (k, data["Gyroscope"][k])
+            for k in self.angular_velocity.keys() & data["Gyroscope"].keys()
+        )
 
-    def imu_handler(self, data) -> None:
-        self.imu_reading.update(data["IMU"])
+    def imu_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.imu_reading.update(
+            (k, data["IMU"][k]) for k in self.imu_reading.keys() & data["IMU"].keys()
+        )
 
-    def light_handler(self, data) -> None:
+    def light_handler(self, data: Dict[str, Dict[str, float]]) -> None:
         self.ambient_light = data["AmbientLight"]["Light"]
 
-    def locator_handler(self, data) -> None:
-        self.location.update(data["Locator"])
+    def locator_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.location.update(
+            (k, data["Locator"][k])
+            for k in self.location.keys() & data["Locator"].keys()
+        )
 
-    def quaternion_handler(self, data) -> None:
-        self.quat_reading.update(data["Quaternion"])
+    def quaternion_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.quat_reading.update(
+            (k, data["Quaternion"][k])
+            for k in self.quat_reading.keys() & data["Quaternion"].keys()
+        )
 
-    def velocity_handler(self, data) -> None:
-        self.velocity_reading.update(data["Velocity"])
+    def velocity_handler(self, data: Dict[str, Dict[str, float]]) -> None:
+        self.velocity_reading.update(
+            (k, data["Velocity"][k])
+            for k in self.velocity_reading.keys() & data["Velocity"].keys()
+        )
 
     def enable_sensors(self) -> None:
         self.log("Enabling sensors...")
@@ -260,6 +278,11 @@ class RobotDriver(DriverLogger):
         self.ground_color_pub.publish(color_msg)
 
     def publish_imu(self):
+        """Sends the stored IMU data as an Imu ROS message.
+        This message includes :
+        - orientation (pitch, roll, yaw) from the IMU sensor
+        - angular velocities (x, y, z) from the gyroscope
+        - linear acceleration (x, y, z) from the accelerometer"""
         imu_msg = Imu()
         imu_msg.header.stamp = rospy.Time.now()
         # build quaterion by converting degrees to radians
@@ -272,25 +295,28 @@ class RobotDriver(DriverLogger):
         )
         # convert degrees/sec to radians/sec
         imu_msg.angular_velocity = Vector3(
-            self.angular_velocity.get("X") * pi / 180,
-            self.angular_velocity.get("Y") * pi / 180,
-            self.angular_velocity.get("Z") * pi / 180,
+            **{k.lower(): v * pi / 180 for k, v in self.angular_velocity.items()}
         )
         # convert values from g to m/s^2
         imu_msg.linear_acceleration = Vector3(
-            self.accelerometer_reading.get("X") * 9.81,
-            self.accelerometer_reading.get("Y") * 9.81,
-            self.accelerometer_reading.get("Z") * 9.81,
+            **{k.lower(): v * 9.81 for k, v in self.accelerometer_reading.items()}
         )
         self.imu_pub.publish(imu_msg)
 
     def publish_light(self):
+        """Publishes the light illuminance in Lux."""
         light_msg = Illuminance()
         light_msg.header.stamp = rospy.Time.now()
         light_msg.illuminance = self.ambient_light
         self.light_pub.publish(light_msg)
 
     def publish_odom(self):
+        """Publishes the odometry data as a ROS message.
+        This message includes :
+        - the current location of the robot in the map frame from the locator
+        - the current orientation of the robot in the map frame from the quaternion
+        - the current velocity of the robot in the map frame from the velocity sensor
+        - the current angular velocity of the robot in the map frame from the gyroscope"""
         odom_msg = Odometry()
         odom_msg.header.stamp = rospy.Time.now()
         odom_msg.pose.pose.position.x = self.location.get("X")
@@ -298,8 +324,9 @@ class RobotDriver(DriverLogger):
         odom_msg.pose.pose.position.z = 0
         odom_quat = Quaternion(**{k.lower(): v for k, v in self.quat_reading.items()})
         odom_msg.pose.pose.orientation = odom_quat
+        # convert degrees/sec to radians/sec
         odom_msg.twist.twist.angular = Vector3(
-            **{k.lower(): v for k, v in self.angular_velocity.items()}
+            **{k.lower(): v * pi / 180 for k, v in self.angular_velocity.items()}
         )
         odom_msg.twist.twist.linear = Vector3(
             **{k.lower(): v for k, v in self.velocity_reading.items()}
@@ -307,10 +334,10 @@ class RobotDriver(DriverLogger):
         self.odom_pub.publish(odom_msg)
 
     def sensor_pub_callback(self, timer):
-        # TODO : refactor to use kwargs
-        # TODO : convert all units to correct ROS unit messages
         self.publish_color()
         self.publish_imu()
+        self.publish_light()
+        self.publish_odom()
 
 
 if __name__ == "__main__":
