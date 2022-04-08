@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   tf
   teraranger_array
+  message_generation
 )
 
 ## System dependencies are found with CMake's conventions
@@ -53,11 +54,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  Leds.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -113,7 +113,7 @@ generate_messages(
 catkin_package(
   #INCLUDE_DIRS include
   LIBRARIES foraging
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs tf teraranger_array
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs tf teraranger_array message_runtime
   DEPENDS system_lib
 )
 

@@ -1,0 +1,5 @@
+std_msgs/ColorRGBA front_left_color
+std_msgs/ColorRGBA front_right_color
+std_msgs/ColorRGBA back_color
+std_msgs/ColorRGBA left_color
+std_msgs/ColorRGBA right_color

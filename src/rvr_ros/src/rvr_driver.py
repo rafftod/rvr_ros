@@ -20,6 +20,7 @@ from std_msgs.msg import Float32MultiArray, ColorRGBA, MultiArrayDimension
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Twist, Quaternion, Pose, Vector3
 from sensor_msgs.msg import Imu, Illuminance
+from rvr_ros.msg import Leds
 import tf
 import tf_conversions
 from math import pi
@@ -127,30 +128,105 @@ class RobotDriver(DriverLogger):
         self.enable_sensors()
         self.create_ros_publishers()
         # create timer for driving callback
-        self.timer = rospy.Timer(
-            rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.test_callback
-        )
+        # self.timer = rospy.Timer(
+        #     rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.test_callback
+        # )
         # create timer for sensor send callback
         self.sensor_pub_timer = rospy.Timer(
             rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.sensor_pub_callback
         )
 
+    def create_ros_subscribers(self) -> None:
+        # wheels speed subscriber
+        rospy.Subscriber(
+            "/rvr/wheels_speed",
+            Float32MultiArray,
+            self.wheels_speed_callback,
+            queue_size=10,
+        )
+        # rgb leds subscriber
+        rospy.Subscriber(
+            "/rvr/rgb_leds",
+            Leds,
+            self.rgb_leds_callback,
+            queue_size=10,
+        )
+
     def create_ros_publishers(self) -> None:
         # Ground color as RGB
         self.ground_color_pub = rospy.Publisher(
-            "ground_color", ColorRGBA, queue_size=10
+            "/rvr/ground_color", ColorRGBA, queue_size=10
         )
         # IMU message includes :
         # - imu orientation
         # - gyroscope velocities
         # - linear acceleration
-        self.imu_pub = rospy.Publisher("imu", Imu, queue_size=10)
+        self.imu_pub = rospy.Publisher("/rvr/imu", Imu, queue_size=10)
         # Ambient light
-        self.light_pub = rospy.Publisher("ambient_light", Illuminance, queue_size=10)
+        self.light_pub = rospy.Publisher(
+            "/rvr/ambient_light", Illuminance, queue_size=10
+        )
         # Odometry message includes :
         # - Pose : position (locator) and orientation (quaternion)
         # - Twist : angular (gyro) and linear (velocity) velocities
-        self.odom_pub = rospy.Publisher("odom", Odometry, queue_size=10)
+        self.odom_pub = rospy.Publisher("/rvr/odom", Odometry, queue_size=10)
+
+    def wheels_speed_callback(self, msg: Float32MultiArray) -> None:
+        """
+        Callback for wheels speed subscriber.
+        """
+        self.speed_params["left_velocity"] = msg.data[0]
+        self.speed_params["right_velocity"] = msg.data[1]
+
+    def rgb_leds_callback(self, msg: Leds) -> None:
+        """
+        Callback for rgb leds subscriber.
+        """
+        # left headlight
+        self.led_settings[RvrLedGroups.headlight_left] = [
+            msg.front_left_color.r,
+            msg.front_left_color.g,
+            msg.front_left_color.b,
+        ]
+        # right headlight
+        self.led_settings[RvrLedGroups.headlight_right] = [
+            msg.front_right_color.r,
+            msg.front_right_color.g,
+            msg.front_right_color.b,
+        ]
+        # left side LED, both battery doors
+        self.led_settings[RvrLedGroups.battery_door_front] = [
+            msg.left_color.r,
+            msg.left_color.g,
+            msg.left_color.b,
+        ]
+        self.led_settings[RvrLedGroups.battery_door_rear] = [
+            msg.left_color.r,
+            msg.left_color.g,
+            msg.left_color.b,
+        ]
+        # right side LED, both power buttons
+        self.led_settings[RvrLedGroups.power_button_front] = [
+            msg.right_color.r,
+            msg.right_color.g,
+            msg.right_color.b,
+        ]
+        self.led_settings[RvrLedGroups.power_button_rear] = [
+            msg.right_color.r,
+            msg.right_color.g,
+            msg.right_color.b,
+        ]
+        # back LED
+        self.led_settings[RvrLedGroups.brakelight_left] = [
+            msg.back_color.r,
+            msg.back_color.g,
+            msg.back_color.b,
+        ]
+        self.led_settings[RvrLedGroups.brakelight_right] = [
+            msg.back_color.r,
+            msg.back_color.g,
+            msg.back_color.b,
+        ]
 
     """ Robot Handlers """
 
