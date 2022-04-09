@@ -37,6 +37,9 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <geometry_msgs/Twist.h>
 #include <nav_msgs/Odometry.h>
+#include <rvr_ros/Leds.h>
+#include <sensor_msgs/Imu.h>
+#include <sensor_msgs/Illuminance.h>
 
 // terabee
 #include "teraranger_array/RangeArray.h"
@@ -117,10 +120,24 @@ public:
     /* Methods that handles virtual sensors */
     virtual void VirtualSense();
 
+    /** The following methods are the callback functions
+     * used with ROS to handle messages from the driver.
+     */
+
     /* Handler for the ground color sensor data from RVR driver */
     virtual void ColorHandler(const std_msgs::ColorRGBA &msg);
 
-    /* Handler for odometry from RVR driver */
+    /* Handler for the IMU message from the driver, which contains :
+     * - orientation (from the IMU)
+     * - angular velocity (from the gyroscope)
+     * - linear acceleration (from the accelerometer)
+     */
+    virtual void ImuHandler(const sensor_msgs::Imu &msg);
+
+    /* Handler for the ambient light */
+    virtual void LightHandler(const sensor_msgs::Illuminance &msg);
+
+    /* Handler for odometry */
     virtual void OdometryHandler(const nav_msgs::Odometry &msg);
 
     /* Handler for proximity sensor data */
@@ -128,6 +145,8 @@ public:
 
     /* Handler for lidar Laserscan data */
     virtual void LidarHandler(const sensor_msgs::LaserScan &msg);
+
+    /** The following methods define the state machine */
 
     /* Start step of the foraging state machine */
     virtual void StartStep();
@@ -184,20 +203,22 @@ private:
 
     // Sensors subscribers
     ros::Subscriber color_sensor_sub;
-    ros::Subscriber odometry_subscriber;
+    ros::Subscriber imu_subscriber;
+    ros::Subscriber light_subscriber;
+    ros::Subscriber odom_subscriber;
 
-    // teraranger subscriber
-    ros::Subscriber teraranger_sub;
+    // Proximity sensors subscriber
+    ros::Subscriber prox_sub;
 
-    // lidar subscriber
+    // Lidar subscriber
     ros::Subscriber lidar_sub;
 
     // Actuators publishers
     ros::Publisher vel_pub;
     std_msgs::Float32MultiArray vel_msg;
 
-    ros::Publisher led_pub[5];
-    std_msgs::ColorRGBA led_msg[5];
+    ros::Publisher led_pub;
+    rvr_ros::Leds led_msg;
 
     // mapping publishers
     ros::Publisher mapping_odom_pub;

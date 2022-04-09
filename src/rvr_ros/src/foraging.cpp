@@ -123,14 +123,18 @@ void CRVR::InitRos()
     rosNode.setParam(ss.str(), theta);
 
     // setup color sensor subscriber
-    color_sensor_sub = rosNode.subscribe("sensor_color", 10, &CRVR::ColorHandler, this);
+    color_sensor_sub = rosNode.subscribe("/rvr/ground_color", 10, &CRVR::ColorHandler, this);
+    // setup IMU subscriber
+    imu_subscriber = rosNode.subscribe("/rvr/imu", 10, &CRVR::ImuHandler, this);
+    // setup light sensor subscriber
+    light_subscriber = rosNode.subscribe("/rvr/light", 10, &CRVR::LightHandler, this);
     // setup odometry subscriber
-    odometry_subscriber = rosNode.subscribe("odometry", 10, &CRVR::OdometryHandler, this);
+    odom_subscriber = rosNode.subscribe("/rvr/odom", 10, &CRVR::OdometryHandler, this);
 
-    // teraranger subscriber
-    teraranger_sub = rosNode.subscribe("ranges", 10, &CRVR::TerarangerHandler, this);
+    // setup teraranger subscriber
+    prox_sub = rosNode.subscribe("ranges", 10, &CRVR::TerarangerHandler, this);
 
-    // lidar subscriber
+    // setup lidar subscriber
     lidar_sub = rosNode.subscribe("scan", 10, &CRVR::LidarHandler, this);
 
     // setup velocity publisher
@@ -159,12 +163,9 @@ void CRVR::InitRos()
     laserMsg.ranges.resize(719);
     laserMsg.intensities.resize(719);
     // setup LED publisher
-    for (unsigned short int i = 0; i < 5; ++i)
-    {
-        ss.str("");
-        ss << "led_color_" << i;
-        led_pub[i] = rosNode.advertise<std_msgs::ColorRGBA>(ss.str(), 10);
-    }
+    ss.str("");
+    ss << "leds_color";
+    led_pub = rosNode.advertise<rvr_ros::Leds>(ss.str(), 10);
 
     currentTime = ros::Time::now();
     lastTime = ros::Time::now();
@@ -394,14 +395,26 @@ void CRVR::RosControlStep()
     vel_msg.data.push_back(round(rightWheelVelocity / 100));
     vel_pub.publish(vel_msg);
     // publish leds color
-    for (unsigned short int i = 0; i < 5; ++i)
-    {
-        led_msg[i].r = sensor_color.GetRed();
-        led_msg[i].g = sensor_color.GetGreen();
-        led_msg[i].b = sensor_color.GetBlue();
-        led_msg[i].a = sensor_color.GetAlpha();
-        led_pub[i].publish(led_msg[i]);
-    }
+    // left headlight
+    led_msg.front_left_color.r = sensor_color.GetRed();
+    led_msg.front_left_color.g = sensor_color.GetGreen();
+    led_msg.front_left_color.b = sensor_color.GetBlue();
+    // right headlight
+    led_msg.front_right_color.r = sensor_color.GetRed();
+    led_msg.front_right_color.g = sensor_color.GetGreen();
+    led_msg.front_right_color.b = sensor_color.GetBlue();
+    // left side LEDs
+    led_msg.left_color.r = sensor_color.GetRed();
+    led_msg.left_color.g = sensor_color.GetGreen();
+    led_msg.left_color.b = sensor_color.GetBlue();
+    // right side LEDs
+    led_msg.right_color.r = sensor_color.GetRed();
+    led_msg.right_color.g = sensor_color.GetGreen();
+    led_msg.right_color.b = sensor_color.GetBlue();
+    // back LEDs
+    led_msg.back_color.r = sensor_color.GetRed();
+    led_msg.back_color.g = sensor_color.GetGreen();
+    led_msg.back_color.b = sensor_color.GetBlue();
     // send odometry message for mapping
     odomMsg.header.stamp = ros::Time::now();
     std::stringstream ss;
@@ -504,11 +517,41 @@ void CRVR::ColorHandler(const std_msgs::ColorRGBA &msg)
     sensor_color.SetAlpha(msg.a);
 }
 
+void CRVR::LightHandler(const sensor_msgs::Illuminance &msg)
+{
+    light = msg.illuminance;
+}
+
+void CRVR::ImuHandler(const sensor_msgs::Imu &msg)
+{
+    /* ORIENTATION */
+    auto imu_quat = msg.orientation;
+    // build matrix from quaternion
+    tf::Matrix3x3 m(tf::Quaternion(imu_quat.x, imu_quat.y, imu_quat.z, imu_quat.w));
+    tfScalar tfRoll, tfPitch, tfYaw;
+    // convert to Euler angles
+    m.getRPY(tfRoll, tfPitch, tfYaw);
+    // copy to control variables
+    roll = CRadians(tfRoll);
+    pitch = CRadians(tfPitch);
+    yaw = CRadians(tfYaw);
+    /* VELOCITY */
+    auto gyro_vel = msg.angular_velocity;
+    angularVelocity.Set(gyro_vel.x, gyro_vel.y, gyro_vel.z);
+    /* ACCELERATION */
+    auto acc_lin = msg.linear_acceleration;
+    acceleration.Set(acc_lin.x, acc_lin.y, acc_lin.z);
+}
+
 void CRVR::OdometryHandler(const nav_msgs::Odometry &msg)
 {
     xPos = msg.pose.pose.position.x;
     yPos = msg.pose.pose.position.y;
-    theta = tf::getYaw(msg.pose.pose.orientation);
+    auto odom_quat = msg.pose.pose.orientation;
+    quat_reading.Set(odom_quat.x, odom_quat.y, odom_quat.z, odom_quat.w);
+    auto odom_angular = msg.twist.twist.angular;
+    angularVelocity.Set(odom_angular.x, odom_angular.y, odom_angular.z);
+    auto odom_linear = msg.twist.twist.linear;
 }
 
 void CRVR::TerarangerHandler(const teraranger_array::RangeArray &msg)
