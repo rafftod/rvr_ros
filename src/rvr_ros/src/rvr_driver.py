@@ -44,7 +44,7 @@ class RobotDriver(DriverLogger):
     ### Wheel settings
 
     # speed in m/s
-    speed: float = 0.5
+    speed: float = 0
 
     ### LEDs settings
 
@@ -84,18 +84,18 @@ class RobotDriver(DriverLogger):
             # left headlight
             RvrLedGroups.headlight_left: self.INACTIVE_COLOR,
             # right headlight
-            RvrLedGroups.headlight_right: self.ACTIVE_COLOR,
+            RvrLedGroups.headlight_right: self.INACTIVE_COLOR,
             # left side LED, left half
             RvrLedGroups.battery_door_front: self.INACTIVE_COLOR,
             # left side LED, right half
             RvrLedGroups.battery_door_rear: self.INACTIVE_COLOR,
             # right side LED, left half
-            RvrLedGroups.power_button_front: self.ACTIVE_COLOR,
+            RvrLedGroups.power_button_front: self.INACTIVE_COLOR,
             # right side LED, right half
-            RvrLedGroups.power_button_rear: self.ACTIVE_COLOR,
+            RvrLedGroups.power_button_rear: self.INACTIVE_COLOR,
             # back LED
-            RvrLedGroups.brakelight_left: self.BACK_COLOR,
-            RvrLedGroups.brakelight_right: self.BACK_COLOR,
+            RvrLedGroups.brakelight_left: self.INACTIVE_COLOR,
+            RvrLedGroups.brakelight_right: self.INACTIVE_COLOR,
         }
         # sensor values
         # battery
@@ -132,8 +132,12 @@ class RobotDriver(DriverLogger):
         #     rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.test_callback
         # )
         # create timer for sensor send callback
-        self.sensor_pub_timer = rospy.Timer(
-            rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.sensor_pub_callback
+        # self.sensor_pub_timer = rospy.Timer(
+        #     rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.sensor_pub_callback
+        # )
+        # create timer for driving callback
+        self.timer = rospy.Timer(
+            rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.driving_callback
         )
 
     def create_ros_subscribers(self) -> None:
@@ -410,10 +414,26 @@ class RobotDriver(DriverLogger):
         self.odom_pub.publish(odom_msg)
 
     def sensor_pub_callback(self, timer):
+        self.publish_info()
+
+    def publish_info(self):
         self.publish_color()
         self.publish_imu()
         self.publish_light()
         self.publish_odom()
+
+    def driving_callback(self, timer):
+        self.publish_info()
+        self.apply_actuators()
+
+    def apply_actuators(self):
+        """Applies the stored actuator values to the robot."""
+        self.rvr.led_control.set_multiple_leds_with_enums(
+            leds=list(self.led_settings.keys()), colors=list(self.led_settings.values())
+        )
+        self.rvr.drive_tank_si_units(
+            **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
+        )
 
 
 if __name__ == "__main__":

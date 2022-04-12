@@ -127,7 +127,7 @@ void CRVR::InitRos()
     // setup IMU subscriber
     imu_subscriber = rosNode.subscribe("/rvr/imu", 10, &CRVR::ImuHandler, this);
     // setup light sensor subscriber
-    light_subscriber = rosNode.subscribe("/rvr/light", 10, &CRVR::LightHandler, this);
+    light_subscriber = rosNode.subscribe("/rvr/ambient_light", 10, &CRVR::LightHandler, this);
     // setup odometry subscriber
     odom_subscriber = rosNode.subscribe("/rvr/odom", 10, &CRVR::OdometryHandler, this);
 
@@ -138,7 +138,7 @@ void CRVR::InitRos()
     lidar_sub = rosNode.subscribe("scan", 10, &CRVR::LidarHandler, this);
 
     // setup velocity publisher
-    vel_pub = rosNode.advertise<std_msgs::Float32MultiArray>("wheels_velocity", 10);
+    vel_pub = rosNode.advertise<std_msgs::Float32MultiArray>("/rvr/wheels_speed", 10);
     // setup velocity messages
     vel_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
     vel_msg.layout.dim[0].size = 2;
@@ -164,7 +164,7 @@ void CRVR::InitRos()
     laserMsg.intensities.resize(719);
     // setup LED publisher
     ss.str("");
-    ss << "leds_color";
+    ss << "/rvr/rgb_leds";
     led_pub = rosNode.advertise<rvr_ros::Leds>(ss.str(), 10);
 
     currentTime = ros::Time::now();
@@ -268,9 +268,14 @@ void CRVR::SearchStep()
     CVector2 speeds = ComputeWheelsVelocityFromVector(CVector2(1.0, stepAngle));
     leftWheelVelocity = speeds.GetX();
     rightWheelVelocity = speeds.GetY();
-    // */
-    // leftWheelVelocity = m_fDefaultWheelVelocity;
-    // rightWheelVelocity = -m_fDefaultWheelVelocity;
+    // test values
+    leftWheelVelocity = m_fDefaultWheelVelocity;
+    rightWheelVelocity = -m_fDefaultWheelVelocity;
+    frontLeftColor = sensor_color;
+    frontRightColor = sensor_color;
+    leftColor = sensor_color;
+    rightColor = sensor_color;
+    backColor = sensor_color;
 
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
@@ -396,25 +401,26 @@ void CRVR::RosControlStep()
     vel_pub.publish(vel_msg);
     // publish leds color
     // left headlight
-    led_msg.front_left_color.r = sensor_color.GetRed();
-    led_msg.front_left_color.g = sensor_color.GetGreen();
-    led_msg.front_left_color.b = sensor_color.GetBlue();
+    led_msg.front_left_color.r = frontLeftColor.GetRed();
+    led_msg.front_left_color.g = frontLeftColor.GetGreen();
+    led_msg.front_left_color.b = frontLeftColor.GetBlue();
     // right headlight
-    led_msg.front_right_color.r = sensor_color.GetRed();
-    led_msg.front_right_color.g = sensor_color.GetGreen();
-    led_msg.front_right_color.b = sensor_color.GetBlue();
+    led_msg.front_right_color.r = frontRightColor.GetRed();
+    led_msg.front_right_color.g = frontRightColor.GetGreen();
+    led_msg.front_right_color.b = frontRightColor.GetBlue();
     // left side LEDs
-    led_msg.left_color.r = sensor_color.GetRed();
-    led_msg.left_color.g = sensor_color.GetGreen();
-    led_msg.left_color.b = sensor_color.GetBlue();
+    led_msg.left_color.r = leftColor.GetRed();
+    led_msg.left_color.g = leftColor.GetGreen();
+    led_msg.left_color.b = leftColor.GetBlue();
     // right side LEDs
-    led_msg.right_color.r = sensor_color.GetRed();
-    led_msg.right_color.g = sensor_color.GetGreen();
-    led_msg.right_color.b = sensor_color.GetBlue();
+    led_msg.right_color.r = rightColor.GetRed();
+    led_msg.right_color.g = rightColor.GetGreen();
+    led_msg.right_color.b = rightColor.GetBlue();
     // back LEDs
-    led_msg.back_color.r = sensor_color.GetRed();
-    led_msg.back_color.g = sensor_color.GetGreen();
-    led_msg.back_color.b = sensor_color.GetBlue();
+    led_msg.back_color.r = backColor.GetRed();
+    led_msg.back_color.g = backColor.GetGreen();
+    led_msg.back_color.b = backColor.GetBlue();
+    led_pub.publish(led_msg);
     // send odometry message for mapping
     odomMsg.header.stamp = ros::Time::now();
     std::stringstream ss;
