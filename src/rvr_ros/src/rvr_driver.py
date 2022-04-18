@@ -13,6 +13,7 @@ import time
 import rospy
 import os
 import sys
+import itertools
 from typing import Dict, List, FrozenSet
 from driver_logger import DriverLogger
 
@@ -38,9 +39,9 @@ class RobotDriver(DriverLogger):
     ### Loop settings
 
     # main loop callback interval (seconds)
-    CALLBACK_INTERVAL_DURATION: float = 0.100
+    CALLBACK_INTERVAL_DURATION: float = 0.200
     # robot API sensor streaming interval (ms)
-    SENSOR_STREAMING_INTERVAL: int = int(CALLBACK_INTERVAL_DURATION * 1000)
+    SENSOR_STREAMING_INTERVAL: int = 2 * int(CALLBACK_INTERVAL_DURATION * 1000)
     ### Wheel settings
 
     # speed in m/s
@@ -77,25 +78,25 @@ class RobotDriver(DriverLogger):
         # initial speed
         self.speed_params: Dict[str, float] = {
             "left_velocity": 0,
-            "right_velocity": self.speed,
+            "right_velocity": 0,
         }
         # initial LED settings
-        self.led_settings: Dict[int, Colors] = {
+        self.led_settings: Dict[int, List[int]] = {
             # left headlight
-            RvrLedGroups.headlight_left: self.INACTIVE_COLOR,
+            RvrLedGroups.headlight_left: self.INACTIVE_COLOR.value,
             # right headlight
-            RvrLedGroups.headlight_right: self.INACTIVE_COLOR,
+            RvrLedGroups.headlight_right: self.INACTIVE_COLOR.value,
             # left side LED, left half
-            RvrLedGroups.battery_door_front: self.INACTIVE_COLOR,
+            RvrLedGroups.battery_door_front: self.INACTIVE_COLOR.value,
             # left side LED, right half
-            RvrLedGroups.battery_door_rear: self.INACTIVE_COLOR,
+            RvrLedGroups.battery_door_rear: self.INACTIVE_COLOR.value,
             # right side LED, left half
-            RvrLedGroups.power_button_front: self.INACTIVE_COLOR,
+            RvrLedGroups.power_button_front: self.INACTIVE_COLOR.value,
             # right side LED, right half
-            RvrLedGroups.power_button_rear: self.INACTIVE_COLOR,
+            RvrLedGroups.power_button_rear: self.INACTIVE_COLOR.value,
             # back LED
-            RvrLedGroups.brakelight_left: self.INACTIVE_COLOR,
-            RvrLedGroups.brakelight_right: self.INACTIVE_COLOR,
+            RvrLedGroups.brakelight_left: self.INACTIVE_COLOR.value,
+            RvrLedGroups.brakelight_right: self.INACTIVE_COLOR.value,
         }
         # sensor values
         # battery
@@ -146,14 +147,14 @@ class RobotDriver(DriverLogger):
             "/rvr/wheels_speed",
             Float32MultiArray,
             self.wheels_speed_callback,
-            queue_size=10,
+            queue_size=1,
         )
         # rgb leds subscriber
         rospy.Subscriber(
             "/rvr/rgb_leds",
             Leds,
             self.rgb_leds_callback,
-            queue_size=10,
+            queue_size=1,
         )
 
     def create_ros_publishers(self) -> None:
@@ -179,8 +180,9 @@ class RobotDriver(DriverLogger):
         """
         Callback for wheels speed subscriber.
         """
-        self.speed_params["left_velocity"] = msg.data[0]
-        self.speed_params["right_velocity"] = msg.data[1]
+        print(msg.data)
+        self.speed_params["left_velocity"] = round(msg.data[0], 2)
+        self.speed_params["right_velocity"] = round(msg.data[1], 2)
 
     def rgb_leds_callback(self, msg: Leds) -> None:
         """
@@ -188,48 +190,48 @@ class RobotDriver(DriverLogger):
         """
         # left headlight
         self.led_settings[RvrLedGroups.headlight_left] = [
-            msg.front_left_color.r,
-            msg.front_left_color.g,
-            msg.front_left_color.b,
+            int(msg.front_left_color.r),
+            int(msg.front_left_color.g),
+            int(msg.front_left_color.b),
         ]
         # right headlight
         self.led_settings[RvrLedGroups.headlight_right] = [
-            msg.front_right_color.r,
-            msg.front_right_color.g,
-            msg.front_right_color.b,
+            int(msg.front_right_color.r),
+            int(msg.front_right_color.g),
+            int(msg.front_right_color.b),
         ]
         # left side LED, both battery doors
         self.led_settings[RvrLedGroups.battery_door_front] = [
-            msg.left_color.r,
-            msg.left_color.g,
-            msg.left_color.b,
+            int(msg.left_color.r),
+            int(msg.left_color.g),
+            int(msg.left_color.b),
         ]
         self.led_settings[RvrLedGroups.battery_door_rear] = [
-            msg.left_color.r,
-            msg.left_color.g,
-            msg.left_color.b,
+            int(msg.left_color.r),
+            int(msg.left_color.g),
+            int(msg.left_color.b),
         ]
         # right side LED, both power buttons
         self.led_settings[RvrLedGroups.power_button_front] = [
-            msg.right_color.r,
-            msg.right_color.g,
-            msg.right_color.b,
+            int(msg.right_color.r),
+            int(msg.right_color.g),
+            int(msg.right_color.b),
         ]
         self.led_settings[RvrLedGroups.power_button_rear] = [
-            msg.right_color.r,
-            msg.right_color.g,
-            msg.right_color.b,
+            int(msg.right_color.r),
+            int(msg.right_color.g),
+            int(msg.right_color.b),
         ]
         # back LED
         self.led_settings[RvrLedGroups.brakelight_left] = [
-            msg.back_color.r,
-            msg.back_color.g,
-            msg.back_color.b,
+            int(msg.back_color.r),
+            int(msg.back_color.g),
+            int(msg.back_color.b),
         ]
         self.led_settings[RvrLedGroups.brakelight_right] = [
-            msg.back_color.r,
-            msg.back_color.g,
-            msg.back_color.b,
+            int(msg.back_color.r),
+            int(msg.back_color.g),
+            int(msg.back_color.b),
         ]
 
     """ Robot Handlers """
@@ -428,9 +430,12 @@ class RobotDriver(DriverLogger):
 
     def apply_actuators(self):
         """Applies the stored actuator values to the robot."""
-        self.rvr.led_control.set_multiple_leds_with_enums(
-            leds=list(self.led_settings.keys()), colors=list(self.led_settings.values())
+        print(self.led_settings)
+        self.rvr.led_control.set_multiple_leds_with_rgb(
+            leds=list(self.led_settings.keys()),
+            colors=list(itertools.chain(*self.led_settings.values())),
         )
+        print(self.speed_params)
         self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
         )
