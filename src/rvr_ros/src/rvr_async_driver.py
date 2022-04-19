@@ -41,7 +41,7 @@ class RobotDriver(DriverLogger):
     ### Loop settings
 
     # main loop callback interval (seconds)
-    CALLBACK_INTERVAL_DURATION: float = 0.200
+    CALLBACK_INTERVAL_DURATION: float = 0.300
     # robot API sensor streaming interval (ms)
     SENSOR_STREAMING_INTERVAL: int = int(CALLBACK_INTERVAL_DURATION * 1000)
     ### Wheel settings
@@ -436,12 +436,12 @@ class RobotDriver(DriverLogger):
 
     async def apply_actuators(self):
         """Applies the stored actuator values to the robot."""
-        print(self.led_settings)
+        self.log(self.led_settings)
         await self.rvr.led_control.set_multiple_leds_with_rgb(
             leds=list(self.led_settings.keys()),
             colors=list(itertools.chain(*self.led_settings.values())),
         )
-        print(self.speed_params)
+        self.log(self.speed_params)
         await self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
         )
