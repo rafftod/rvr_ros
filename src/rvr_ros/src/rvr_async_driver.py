@@ -77,7 +77,7 @@ class RobotDriver(DriverLogger):
     async def create(self, loop: asyncio.AbstractEventLoop) -> None:
         # init robot API connection
         self.log("Starting RVR API...")
-        self.loop = loop
+        self._event_loop = loop
         self.rvr = SpheroRvrAsync(dal=SerialAsyncDal(loop))
         # initial speed
         self.speed_params: Dict[str, float] = {
@@ -152,14 +152,14 @@ class RobotDriver(DriverLogger):
             "/rvr/wheels_speed",
             Float32MultiArray,
             self.wheels_speed_callback,
-            queue_size=1,
+            queue_size=10,
         )
         # rgb leds subscriber
         self.leds_sub = rospy.Subscriber(
             "/rvr/rgb_leds",
             Leds,
             self.rgb_leds_callback,
-            queue_size=1,
+            queue_size=10,
         )
 
     def create_ros_publishers(self) -> None:
@@ -185,6 +185,7 @@ class RobotDriver(DriverLogger):
         """
         Callback for wheels speed subscriber.
         """
+        print("Wheels speed callback")
         self.speed_params["left_velocity"] = round(msg.data[0], 2)
         self.speed_params["right_velocity"] = round(msg.data[1], 2)
 
@@ -429,18 +430,17 @@ class RobotDriver(DriverLogger):
         self.publish_odom()
 
     def driving_callback(self, timer):
-        loop = self.loop
         self.publish_info()
-        loop.create_task(self.apply_actuators())
+        self._event_loop.create_task(self.apply_actuators())
 
     async def apply_actuators(self):
         """Applies the stored actuator values to the robot."""
-        self.log(self.led_settings)
+        # self.log(self.led_settings)
         await self.rvr.led_control.set_multiple_leds_with_rgb(
             leds=list(self.led_settings.keys()),
             colors=list(itertools.chain(*self.led_settings.values())),
         )
-        self.log(self.speed_params)
+        # self.log(self.speed_params)
         await self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
         )
@@ -453,7 +453,7 @@ if __name__ == "__main__":
         sensing_test = RobotDriver()
         loop = asyncio.get_event_loop()
         asyncio.ensure_future(sensing_test.create(loop))
-        # loop.run_forever()
+        loop.run_forever()
         rospy.spin()
     except rospy.ROSInterruptException:
         time.sleep(0.5)
