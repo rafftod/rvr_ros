@@ -235,11 +235,7 @@ private:
     Real rightWheelVelocity;
 
     /* Color of each LED. */
-    CColor frontLeftColor;
-    CColor frontRightColor;
-    CColor leftColor;
-    CColor rightColor;
-    CColor backColor;
+    CColor led_colors[5];
 
     /* This is the default wheel velocity.
     It is usually parsed from the XML file. */

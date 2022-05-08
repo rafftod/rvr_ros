@@ -18,7 +18,7 @@ CRVR::CRVR() : m_pcWheels(NULL),
                m_pcLocatorSensor(NULL),
                m_pcAccelerometerSensor(NULL),
                m_pcGyroscopeSensor(NULL),
-               sensor_color(CColor::GREEN),
+               sensor_color(CColor::RED),
                m_fDefaultWheelVelocity(155.5f),
                rvr_driven(false),
                xPos(0.0),
@@ -200,7 +200,7 @@ void CRVR::ControlStep()
     {
         VirtualSense();
     }
-    m_pcLedsActuator->SetColors(sensor_color);
+    // m_pcLedsActuator->SetColors(sensor_color);
     switch (state)
     {
     case State::START:
@@ -239,11 +239,10 @@ void CRVR::TestStep()
     // test state
     leftWheelVelocity = m_fDefaultWheelVelocity;
     rightWheelVelocity = -m_fDefaultWheelVelocity;
-    frontLeftColor = sensor_color;
-    frontRightColor = sensor_color;
-    leftColor = sensor_color;
-    rightColor = sensor_color;
-    backColor = sensor_color;
+    for (int i = 0; i < 5; i++)
+    {
+        led_colors[i] = sensor_color;
+    }
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
 
@@ -407,27 +406,33 @@ void CRVR::RosControlStep()
     vel_msg.data.push_back(round(leftWheelVelocity / 100)); // convert cm/s to m/s
     vel_msg.data.push_back(round(rightWheelVelocity / 100));
     vel_pub.publish(vel_msg);
+    for (int i = 0; i < 5; i++)
+    {
+        led_msg.led_colors[i].r = led_colors[i].GetRed();
+        led_msg.led_colors[i].g = led_colors[i].GetGreen();
+        led_msg.led_colors[i].b = led_colors[i].GetBlue();
+    }
     // publish leds color
     // left headlight
-    led_msg.front_left_color.r = (float)frontLeftColor.GetRed();
-    led_msg.front_left_color.g = (float)frontLeftColor.GetGreen();
-    led_msg.front_left_color.b = (float)frontLeftColor.GetBlue();
-    // right headlight
-    led_msg.front_right_color.r = (float)frontRightColor.GetRed();
-    led_msg.front_right_color.g = (float)frontRightColor.GetGreen();
-    led_msg.front_right_color.b = (float)frontRightColor.GetBlue();
-    // left side LEDs
-    led_msg.left_color.r = (float)leftColor.GetRed();
-    led_msg.left_color.g = (float)leftColor.GetGreen();
-    led_msg.left_color.b = (float)leftColor.GetBlue();
-    // right side LEDs
-    led_msg.right_color.r = (float)rightColor.GetRed();
-    led_msg.right_color.g = (float)rightColor.GetGreen();
-    led_msg.right_color.b = (float)rightColor.GetBlue();
-    // back LEDs
-    led_msg.back_color.r = (float)backColor.GetRed();
-    led_msg.back_color.g = (float)backColor.GetGreen();
-    led_msg.back_color.b = (float)backColor.GetBlue();
+    // led_msg.front_left_color.r = (float)led_colors[0].GetRed();
+    // led_msg.front_left_color.g = (float)led_colors[0].GetGreen();
+    // led_msg.front_left_color.b = (float)led_colors[0].GetBlue();
+    // // right headlight
+    // led_msg.front_right_color.r = (float)led_colors[1].GetRed();
+    // led_msg.front_right_color.g = (float)led_colors[1].GetGreen();
+    // led_msg.front_right_color.b = (float)led_colors[1].GetBlue();
+    // // left side LEDs
+    // led_msg.left_color.r = (float)leftColor.GetRed();
+    // led_msg.left_color.g = (float)leftColor.GetGreen();
+    // led_msg.left_color.b = (float)leftColor.GetBlue();
+    // // right side LEDs
+    // led_msg.right_color.r = (float)rightColor.GetRed();
+    // led_msg.right_color.g = (float)rightColor.GetGreen();
+    // led_msg.right_color.b = (float)rightColor.GetBlue();
+    // // back LEDs
+    // led_msg.back_color.r = (float)backColor.GetRed();
+    // led_msg.back_color.g = (float)backColor.GetGreen();
+    // led_msg.back_color.b = (float)backColor.GetBlue();
     led_pub.publish(led_msg);
     // send odometry message for mapping
     odomMsg.header.stamp = ros::Time::now();

@@ -194,48 +194,48 @@ class RobotDriver(DriverLogger):
         """
         # left headlight
         self.led_settings[RvrLedGroups.headlight_left] = [
-            int(msg.front_left_color.r),
-            int(msg.front_left_color.g),
-            int(msg.front_left_color.b),
+            int(msg.led_colors[0].r),
+            int(msg.led_colors[0].g),
+            int(msg.led_colors[0].b),
         ]
         # right headlight
         self.led_settings[RvrLedGroups.headlight_right] = [
-            int(msg.front_right_color.r),
-            int(msg.front_right_color.g),
-            int(msg.front_right_color.b),
+            int(msg.led_colors[1].r),
+            int(msg.led_colors[1].g),
+            int(msg.led_colors[1].b),
         ]
         # left side LED, both battery doors
         self.led_settings[RvrLedGroups.battery_door_front] = [
-            int(msg.left_color.r),
-            int(msg.left_color.g),
-            int(msg.left_color.b),
+            int(msg.led_colors[2].r),
+            int(msg.led_colors[2].g),
+            int(msg.led_colors[2].b),
         ]
         self.led_settings[RvrLedGroups.battery_door_rear] = [
-            int(msg.left_color.r),
-            int(msg.left_color.g),
-            int(msg.left_color.b),
+            int(msg.led_colors[2].r),
+            int(msg.led_colors[2].g),
+            int(msg.led_colors[2].b),
         ]
         # right side LED, both power buttons
         self.led_settings[RvrLedGroups.power_button_front] = [
-            int(msg.right_color.r),
-            int(msg.right_color.g),
-            int(msg.right_color.b),
+            int(msg.led_colors[3].r),
+            int(msg.led_colors[3].g),
+            int(msg.led_colors[3].b),
         ]
         self.led_settings[RvrLedGroups.power_button_rear] = [
-            int(msg.right_color.r),
-            int(msg.right_color.g),
-            int(msg.right_color.b),
+            int(msg.led_colors[3].r),
+            int(msg.led_colors[3].g),
+            int(msg.led_colors[3].b),
         ]
         # back LED
         self.led_settings[RvrLedGroups.brakelight_left] = [
-            int(msg.back_color.r),
-            int(msg.back_color.g),
-            int(msg.back_color.b),
+            int(msg.led_colors[4].r),
+            int(msg.led_colors[4].g),
+            int(msg.led_colors[4].b),
         ]
         self.led_settings[RvrLedGroups.brakelight_right] = [
-            int(msg.back_color.r),
-            int(msg.back_color.g),
-            int(msg.back_color.b),
+            int(msg.led_colors[4].r),
+            int(msg.led_colors[4].g),
+            int(msg.led_colors[4].b),
         ]
 
     """ Robot Handlers """
