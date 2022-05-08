@@ -127,7 +127,7 @@ class RobotDriver(DriverLogger):
     async def setup_rvr(self) -> None:
         self.log("Waking up RVR...")
         await self.rvr.wake()
-        asyncio.sleep(2)
+        await asyncio.sleep(2)
         await self.rvr.reset_yaw()
         await self.rvr.led_control.turn_leds_off()
         await self.enable_sensors()
@@ -185,7 +185,6 @@ class RobotDriver(DriverLogger):
         """
         Callback for wheels speed subscriber.
         """
-        print("Wheels speed callback")
         self.speed_params["left_velocity"] = round(msg.data[0], 2)
         self.speed_params["right_velocity"] = round(msg.data[1], 2)
 
