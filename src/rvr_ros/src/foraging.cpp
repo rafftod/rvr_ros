@@ -138,7 +138,7 @@ void CRVR::InitRos()
     lidar_sub = rosNode.subscribe("scan", 10, &CRVR::LidarHandler, this);
 
     // setup velocity publisher
-    vel_pub = rosNode.advertise<std_msgs::Float32MultiArray>("/rvr/wheels_speed", 10);
+    vel_pub = rosNode.advertise<std_msgs::Float32MultiArray>("/rvr/wheels_speed", 10, true);
     // setup velocity messages
     vel_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
     vel_msg.layout.dim[0].size = 2;
@@ -165,7 +165,7 @@ void CRVR::InitRos()
     // setup LED publisher
     ss.str("");
     ss << "/rvr/rgb_leds";
-    led_pub = rosNode.advertise<rvr_ros::Leds>(ss.str(), 10);
+    led_pub = rosNode.advertise<rvr_ros::Leds>(ss.str(), 10, true);
 
     currentTime = ros::Time::now();
     lastTime = ros::Time::now();
@@ -413,26 +413,6 @@ void CRVR::RosControlStep()
         led_msg.led_colors[i].b = led_colors[i].GetBlue();
     }
     // publish leds color
-    // left headlight
-    // led_msg.front_left_color.r = (float)led_colors[0].GetRed();
-    // led_msg.front_left_color.g = (float)led_colors[0].GetGreen();
-    // led_msg.front_left_color.b = (float)led_colors[0].GetBlue();
-    // // right headlight
-    // led_msg.front_right_color.r = (float)led_colors[1].GetRed();
-    // led_msg.front_right_color.g = (float)led_colors[1].GetGreen();
-    // led_msg.front_right_color.b = (float)led_colors[1].GetBlue();
-    // // left side LEDs
-    // led_msg.left_color.r = (float)leftColor.GetRed();
-    // led_msg.left_color.g = (float)leftColor.GetGreen();
-    // led_msg.left_color.b = (float)leftColor.GetBlue();
-    // // right side LEDs
-    // led_msg.right_color.r = (float)rightColor.GetRed();
-    // led_msg.right_color.g = (float)rightColor.GetGreen();
-    // led_msg.right_color.b = (float)rightColor.GetBlue();
-    // // back LEDs
-    // led_msg.back_color.r = (float)backColor.GetRed();
-    // led_msg.back_color.g = (float)backColor.GetGreen();
-    // led_msg.back_color.b = (float)backColor.GetBlue();
     led_pub.publish(led_msg);
     // send odometry message for mapping
     odomMsg.header.stamp = ros::Time::now();

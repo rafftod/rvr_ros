@@ -165,21 +165,23 @@ class RobotDriver(DriverLogger):
     def create_ros_publishers(self) -> None:
         # Ground color as RGB
         self.ground_color_pub = rospy.Publisher(
-            "/rvr/ground_color", ColorRGBA, queue_size=10
+            "/rvr/ground_color", ColorRGBA, queue_size=10, latch=True
         )
         # IMU message includes :
         # - imu orientation
         # - gyroscope velocities
         # - linear acceleration
-        self.imu_pub = rospy.Publisher("/rvr/imu", Imu, queue_size=10)
+        self.imu_pub = rospy.Publisher("/rvr/imu", Imu, queue_size=10, latch=True)
         # Ambient light
         self.light_pub = rospy.Publisher(
-            "/rvr/ambient_light", Illuminance, queue_size=10
+            "/rvr/ambient_light", Illuminance, queue_size=10, latch=True
         )
         # Odometry message includes :
         # - Pose : position (locator) and orientation (quaternion)
         # - Twist : angular (gyro) and linear (velocity) velocities
-        self.odom_pub = rospy.Publisher("/rvr/odom", Odometry, queue_size=10)
+        self.odom_pub = rospy.Publisher(
+            "/rvr/odom", Odometry, queue_size=10, latch=True
+        )
 
     def wheels_speed_callback(self, msg: Float32MultiArray) -> None:
         """
