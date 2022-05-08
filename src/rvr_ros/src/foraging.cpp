@@ -276,7 +276,7 @@ void CRVR::SearchStep()
     leftColor = sensor_color;
     rightColor = sensor_color;
     backColor = sensor_color;
-
+    std::cout << sensor_color << std::endl;
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
 
@@ -517,7 +517,6 @@ void CRVR::OdometryUpdate()
 
 void CRVR::ColorHandler(const std_msgs::ColorRGBA &msg)
 {
-    printf("%d\n", (argos::UInt8)msg.r);
     sensor_color.SetRed((argos::UInt8)msg.r);
     sensor_color.SetGreen((argos::UInt8)msg.g);
     sensor_color.SetBlue((argos::UInt8)msg.b);
