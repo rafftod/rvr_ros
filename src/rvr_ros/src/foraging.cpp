@@ -517,10 +517,11 @@ void CRVR::OdometryUpdate()
 
 void CRVR::ColorHandler(const std_msgs::ColorRGBA &msg)
 {
-    sensor_color.SetRed(msg.r);
-    sensor_color.SetGreen(msg.g);
-    sensor_color.SetBlue(msg.b);
-    sensor_color.SetAlpha(msg.a);
+    printf("%d\n", (argos::UInt8)msg.r);
+    sensor_color.SetRed((argos::UInt8)msg.r);
+    sensor_color.SetGreen((argos::UInt8)msg.g);
+    sensor_color.SetBlue((argos::UInt8)msg.b);
+    sensor_color.SetAlpha((argos::UInt8)msg.a);
 }
 
 void CRVR::LightHandler(const sensor_msgs::Illuminance &msg)
