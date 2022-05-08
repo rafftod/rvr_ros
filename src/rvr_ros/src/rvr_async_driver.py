@@ -76,7 +76,7 @@ class RobotDriver(DriverLogger):
 
     async def create(self, loop: asyncio.AbstractEventLoop) -> None:
         # init ROS node
-        rospy.init_node("rvr_sensing_test")
+        rospy.init_node("rvr_async_driver")
         # init robot API connection
         self.log("Starting RVR API...")
         self.loop = loop
@@ -134,6 +134,7 @@ class RobotDriver(DriverLogger):
         await self.rvr.led_control.turn_leds_off()
         await self.enable_sensors()
         self.create_ros_publishers()
+        self.create_ros_subscribers()
         # create timer for driving callback
         # self.timer = rospy.Timer(
         #     rospy.Duration(self.CALLBACK_INTERVAL_DURATION), self.test_callback
@@ -149,14 +150,14 @@ class RobotDriver(DriverLogger):
 
     def create_ros_subscribers(self) -> None:
         # wheels speed subscriber
-        rospy.Subscriber(
+        self.wheels_sub = rospy.Subscriber(
             "/rvr/wheels_speed",
             Float32MultiArray,
             self.wheels_speed_callback,
             queue_size=1,
         )
         # rgb leds subscriber
-        rospy.Subscriber(
+        self.leds_sub = rospy.Subscriber(
             "/rvr/rgb_leds",
             Leds,
             self.rgb_leds_callback,
