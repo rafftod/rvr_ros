@@ -91,7 +91,7 @@ void CRVR::Init(TConfigurationNode &t_node)
     rightWheelVelocity = m_fDefaultWheelVelocity;
     GetNodeAttributeOrDefault(t_node, "rvr_driven", rvr_driven, rvr_driven);
     // set state as starting state
-    state = State::START;
+    state = State::TEST;
     InitRos();
 }
 
@@ -223,11 +223,28 @@ void CRVR::ControlStep()
         // 180° turn
         TurnBackStep();
         break;
+    case State::TEST:
+        // test state
+        TestStep();
+        break;
     }
     if (!rvr_driven)
         OdometryUpdate();
     RosControlStep();
     ros::spinOnce();
+}
+
+void CRVR::TestStep()
+{
+    // test state
+    leftWheelVelocity = m_fDefaultWheelVelocity;
+    rightWheelVelocity = -m_fDefaultWheelVelocity;
+    frontLeftColor = sensor_color;
+    frontRightColor = sensor_color;
+    leftColor = sensor_color;
+    rightColor = sensor_color;
+    backColor = sensor_color;
+    m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
 
 void CRVR::StartStep()
@@ -268,14 +285,6 @@ void CRVR::SearchStep()
     CVector2 speeds = ComputeWheelsVelocityFromVector(CVector2(1.0, stepAngle));
     leftWheelVelocity = speeds.GetX();
     rightWheelVelocity = speeds.GetY();
-    // test values
-    leftWheelVelocity = m_fDefaultWheelVelocity;
-    rightWheelVelocity = -m_fDefaultWheelVelocity;
-    frontLeftColor = sensor_color;
-    frontRightColor = sensor_color;
-    leftColor = sensor_color;
-    rightColor = sensor_color;
-    backColor = sensor_color;
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
 

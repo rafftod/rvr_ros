@@ -72,6 +72,7 @@ public:
         PICKUP,    // picking stuff up
         HOMING,    // going back home
         TURN_BACK, // turn back when touching borders
+        TEST
     };
 
 public:
@@ -147,6 +148,8 @@ public:
     virtual void LidarHandler(const sensor_msgs::LaserScan &msg);
 
     /** The following methods define the state machine */
+
+    virtual void TestStep();
 
     /* Start step of the foraging state machine */
     virtual void StartStep();
@@ -237,7 +240,6 @@ private:
     CColor leftColor;
     CColor rightColor;
     CColor backColor;
-
 
     /* This is the default wheel velocity.
     It is usually parsed from the XML file. */
