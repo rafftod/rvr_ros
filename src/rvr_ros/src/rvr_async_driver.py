@@ -75,8 +75,6 @@ class RobotDriver(DriverLogger):
         pass
 
     async def create(self, loop: asyncio.AbstractEventLoop) -> None:
-        # init ROS node
-        rospy.init_node("rvr_async_driver")
         # init robot API connection
         self.log("Starting RVR API...")
         self.loop = loop
@@ -450,6 +448,8 @@ class RobotDriver(DriverLogger):
 
 if __name__ == "__main__":
     try:
+        # init ROS node
+        rospy.init_node("rvr_async_driver")
         sensing_test = RobotDriver()
         loop = asyncio.get_event_loop()
         asyncio.ensure_future(sensing_test.create(loop))
