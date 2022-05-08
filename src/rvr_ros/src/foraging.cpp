@@ -276,7 +276,6 @@ void CRVR::SearchStep()
     leftColor = sensor_color;
     rightColor = sensor_color;
     backColor = sensor_color;
-    std::cout << sensor_color << std::endl;
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
 }
 
@@ -401,25 +400,25 @@ void CRVR::RosControlStep()
     vel_pub.publish(vel_msg);
     // publish leds color
     // left headlight
-    led_msg.front_left_color.r = frontLeftColor.GetRed();
-    led_msg.front_left_color.g = frontLeftColor.GetGreen();
-    led_msg.front_left_color.b = frontLeftColor.GetBlue();
+    led_msg.front_left_color.r = (float)frontLeftColor.GetRed();
+    led_msg.front_left_color.g = (float)frontLeftColor.GetGreen();
+    led_msg.front_left_color.b = (float)frontLeftColor.GetBlue();
     // right headlight
-    led_msg.front_right_color.r = frontRightColor.GetRed();
-    led_msg.front_right_color.g = frontRightColor.GetGreen();
-    led_msg.front_right_color.b = frontRightColor.GetBlue();
+    led_msg.front_right_color.r = (float)frontRightColor.GetRed();
+    led_msg.front_right_color.g = (float)frontRightColor.GetGreen();
+    led_msg.front_right_color.b = (float)frontRightColor.GetBlue();
     // left side LEDs
-    led_msg.left_color.r = leftColor.GetRed();
-    led_msg.left_color.g = leftColor.GetGreen();
-    led_msg.left_color.b = leftColor.GetBlue();
+    led_msg.left_color.r = (float)leftColor.GetRed();
+    led_msg.left_color.g = (float)leftColor.GetGreen();
+    led_msg.left_color.b = (float)leftColor.GetBlue();
     // right side LEDs
-    led_msg.right_color.r = rightColor.GetRed();
-    led_msg.right_color.g = rightColor.GetGreen();
-    led_msg.right_color.b = rightColor.GetBlue();
+    led_msg.right_color.r = (float)rightColor.GetRed();
+    led_msg.right_color.g = (float)rightColor.GetGreen();
+    led_msg.right_color.b = (float)rightColor.GetBlue();
     // back LEDs
-    led_msg.back_color.r = backColor.GetRed();
-    led_msg.back_color.g = backColor.GetGreen();
-    led_msg.back_color.b = backColor.GetBlue();
+    led_msg.back_color.r = (float)backColor.GetRed();
+    led_msg.back_color.g = (float)backColor.GetGreen();
+    led_msg.back_color.b = (float)backColor.GetBlue();
     led_pub.publish(led_msg);
     // send odometry message for mapping
     odomMsg.header.stamp = ros::Time::now();

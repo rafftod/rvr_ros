@@ -453,7 +453,7 @@ if __name__ == "__main__":
         sensing_test = RobotDriver()
         loop = asyncio.get_event_loop()
         asyncio.ensure_future(sensing_test.create(loop))
-        loop.run_forever()
+        # loop.run_forever()
         rospy.spin()
     except rospy.ROSInterruptException:
         time.sleep(0.5)
