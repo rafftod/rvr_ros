@@ -148,7 +148,7 @@ void CRVR::InitRos()
 
     // mapping publishers
 
-    mapping_laser_pub = rosNode.advertise<sensor_msgs::LaserScan>("/scan", 10);
+    mapping_laser_pub = rosNode.advertise<sensor_msgs::LaserScan>("/map_scan", 10);
     mapping_odom_pub = rosNode.advertise<nav_msgs::Odometry>("/odom", 10);
 
     // init laser scan
