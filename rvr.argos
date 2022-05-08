@@ -34,7 +34,7 @@
         <rvr_gyroscope implementation="default" noise_level="0.01"/>
         <rvr_locator implementation="default" />
       </sensors>
-      <params velocity="50"
+      <params velocity="25"
               rvr_driven="true"/>
     </rvr_foraging>
 
