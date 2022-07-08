@@ -17,7 +17,7 @@
   <controllers>
 
     <rvr_foraging id="fdc"
-                                        library="devel/lib/libforaging.so">
+                                        library="devel/lib/libcommunication.so">
       <actuators>
         <rvr_wheels implementation="default" />
 		    <rvr_rgb_leds implementation="default" medium="leds"/>
@@ -34,7 +34,7 @@
         <rvr_gyroscope implementation="default" noise_level="0.01"/>
         <rvr_locator implementation="default" />
       </sensors>
-      <params velocity="10"
+      <params velocity="50"
               rvr_driven="true"
               rw_max_steps="20"
               rw_prox_threshold="0.1"/>

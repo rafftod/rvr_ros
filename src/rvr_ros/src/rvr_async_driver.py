@@ -41,7 +41,7 @@ class RobotDriver(DriverLogger):
     ### Loop settings
 
     # main loop callback interval (seconds)
-    CALLBACK_INTERVAL_DURATION: float = 0.300
+    CALLBACK_INTERVAL_DURATION: float = 0.100
     # robot API sensor streaming interval (ms)
     SENSOR_STREAMING_INTERVAL: int = int(CALLBACK_INTERVAL_DURATION * 1000)
     ### Wheel settings

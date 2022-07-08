@@ -636,8 +636,11 @@ void CRVR::TerarangerHandler(const teraranger_array::RangeArray &msg)
 {
     for (short int i = 0; i < 8; ++i)
     {
-        prox_readings[i] = Exp(-msg.ranges[i].range);
-        CRange<Real>(0.0f, 1.0f).TruncValue(prox_readings[i]);
+	if(msg.ranges[i].range <= 0.4)
+        	prox_readings[i] = Exp(-msg.ranges[i].range);
+	else
+		prox_readings[i] = 0.0f;
+	CRange<Real>(0.0f, 1.0f).TruncValue(prox_readings[i]);
     }
 }
 
@@ -666,7 +669,7 @@ CCI_RVRProximitySensor::SReading CRVR::SumProxReadingsArray(Real *s_prox_reading
     for (UInt8 i = 0; i < 8; i++)
     {
         auto angle = m_pcProximitySensor->GetReading(i).Angle;
-        cSumProxi += CVector2(s_prox_reading[i], angle.SignedNormalize());
+	cSumProxi += CVector2(s_prox_reading[i], angle.SignedNormalize());
     }
 
     cOutputReading.Value = (cSumProxi.Length() > 1) ? 1 : cSumProxi.Length();
