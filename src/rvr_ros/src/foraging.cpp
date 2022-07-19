@@ -238,7 +238,7 @@ void CRVR::TestStep()
 {
     // test state
     leftWheelVelocity = m_fDefaultWheelVelocity;
-    rightWheelVelocity = -m_fDefaultWheelVelocity;
+    rightWheelVelocity = m_fDefaultWheelVelocity;
     for (int i = 0; i < 5; i++)
     {
         led_colors[i] = sensor_color;
