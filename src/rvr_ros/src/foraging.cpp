@@ -174,7 +174,7 @@ void CRVR::InitRos()
 void CRVR::VirtualSense()
 {
     // virtual sense
-    sensor_color = m_pcColorSensor->GetReading();
+    sensor_color = m_pcColorSensor->GetReading().Color;
     for (short int i = 0; i < 8; ++i)
     {
         prox_readings[i] = m_pcProximitySensor->GetReading(i).Value;
@@ -557,7 +557,8 @@ void CRVR::TerarangerHandler(const teraranger_array::RangeArray &msg)
 {
     for (short int i = 0; i < 8; ++i)
     {
-        prox_readings[i] = msg.ranges[i].range;
+        prox_readings[i] = Exp(-msg.ranges[i].range);
+        CRange<Real>(0.0f, 1.0f).TruncValue(prox_readings[i]);
     }
 }
 
