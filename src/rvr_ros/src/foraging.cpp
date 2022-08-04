@@ -37,7 +37,10 @@ CRVR::CRVR() : m_pcWheels(NULL),
                rightStepsDiff(0),
                calibStep(5.8),
                calibAngle(3.8),
-               pickup_duration(3.0f)
+               pickup_duration(3.0f),
+               m_eExplorationState(RANDOM_WALK),
+               m_fProximityThreshold(0.1),
+               m_unTurnSteps(0)
 {
 }
 
@@ -90,8 +93,13 @@ void CRVR::Init(TConfigurationNode &t_node)
     leftWheelVelocity = m_fDefaultWheelVelocity;
     rightWheelVelocity = m_fDefaultWheelVelocity;
     GetNodeAttributeOrDefault(t_node, "rvr_driven", rvr_driven, rvr_driven);
+    GetNodeAttributeOrDefault(t_node, "proximity_range", prox_range, prox_range);
+    SInt32 max_rw_steps = 0;
+    GetNodeAttributeOrDefault(t_node, "rw_max_steps", max_rw_steps, max_rw_steps);
+    m_cRandomStepsRange.SetMax(max_rw_steps);
+    GetNodeAttributeOrDefault(t_node, "rw_prox_threshold", m_fProximityThreshold, m_fProximityThreshold);
     // set state as starting state
-    state = State::TEST;
+    state = State::AUTOMODE_RW;
     InitRos();
 }
 
@@ -227,6 +235,9 @@ void CRVR::ControlStep()
         // test state
         TestStep();
         break;
+    case State::AUTOMODE_RW:
+        AutomodeRWStep();
+        break;
     }
     if (!rvr_driven)
         OdometryUpdate();
@@ -244,6 +255,62 @@ void CRVR::TestStep()
         led_colors[i] = sensor_color;
     }
     m_pcWheels->SetLinearVelocity(leftWheelVelocity, rightWheelVelocity);
+}
+
+void CRVR::AutomodeRWStep()
+{
+    switch (m_eExplorationState)
+    {
+    case RANDOM_WALK:
+    {
+        std::cout << "rw" << std::endl;
+        leftWheelVelocity = m_fDefaultWheelVelocity;
+        rightWheelVelocity = m_fDefaultWheelVelocity;
+        m_pcWheels->SetLinearVelocity(m_fDefaultWheelVelocity, m_fDefaultWheelVelocity);
+        if (IsObstacleInFront(SumProxReadingsArray(prox_readings)))
+        {
+            m_eExplorationState = OBSTACLE_AVOIDANCE;
+            m_unTurnSteps = m_pcRng->Uniform(m_cRandomStepsRange);
+            CRadians cAngle = SumProxReadingsArray(prox_readings).Angle.SignedNormalize();
+            if (cAngle.GetValue() < 0)
+            {
+                m_eTurnDirection = LEFT;
+            }
+            else
+            {
+                m_eTurnDirection = RIGHT;
+            }
+        }
+        break;
+    }
+    case OBSTACLE_AVOIDANCE:
+    {
+        std::cout << "turn" << std::endl;
+        m_unTurnSteps -= 1;
+        switch (m_eTurnDirection)
+        {
+        case LEFT:
+        {
+            m_pcWheels->SetLinearVelocity(-m_fDefaultWheelVelocity, m_fDefaultWheelVelocity);
+            leftWheelVelocity = -m_fDefaultWheelVelocity;
+            rightWheelVelocity = m_fDefaultWheelVelocity;
+            break;
+        }
+        case RIGHT:
+        {
+            m_pcWheels->SetLinearVelocity(m_fDefaultWheelVelocity, -m_fDefaultWheelVelocity);
+            leftWheelVelocity = m_fDefaultWheelVelocity;
+            rightWheelVelocity = -m_fDefaultWheelVelocity;
+            break;
+        }
+        }
+        if (m_unTurnSteps <= 0)
+        {
+            m_eExplorationState = RANDOM_WALK;
+        }
+        break;
+    }
+    }
 }
 
 void CRVR::StartStep()
@@ -568,6 +635,31 @@ void CRVR::LidarHandler(const sensor_msgs::LaserScan &msg)
         lidar_readings[i] = msg.ranges[i];
     // send it back for mapping
     mapping_laser_pub.publish(msg);
+}
+
+bool CRVR::IsObstacleInFront(CCI_RVRProximitySensor::SReading s_prox_reading)
+{
+    CRadians cAngle = s_prox_reading.Angle;
+    if (s_prox_reading.Value >= m_fProximityThreshold && ((cAngle <= CRadians::PI_OVER_TWO) && (cAngle >= -CRadians::PI_OVER_TWO)))
+    {
+        return true;
+    }
+    return false;
+}
+
+CCI_RVRProximitySensor::SReading CRVR::SumProxReadingsArray(Real *s_prox_reading)
+{
+    CCI_RVRProximitySensor::SReading cOutputReading;
+    CVector2 cSumProxi(0, CRadians::ZERO);
+    for (UInt8 i = 0; i < 8; i++)
+    {
+        auto angle = m_pcProximitySensor->GetReading(i).Angle;
+        cSumProxi += CVector2(s_prox_reading[i], angle.SignedNormalize());
+    }
+
+    cOutputReading.Value = (cSumProxi.Length() > 1) ? 1 : cSumProxi.Length();
+    cOutputReading.Angle = cSumProxi.Angle().SignedNormalize();
+    return cOutputReading;
 }
 
 REGISTER_CONTROLLER(CRVR, "rvr_foraging")

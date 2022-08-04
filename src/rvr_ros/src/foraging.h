@@ -72,7 +72,20 @@ public:
         PICKUP,    // picking stuff up
         HOMING,    // going back home
         TURN_BACK, // turn back when touching borders
-        TEST
+        TEST,
+        AUTOMODE_RW
+    };
+
+    enum ExplorationState
+    {
+        RANDOM_WALK,
+        OBSTACLE_AVOIDANCE
+    };
+
+    enum TurnDirection
+    {
+        LEFT,
+        RIGHT
     };
 
 public:
@@ -166,11 +179,17 @@ public:
     /* Turn back step of the foraging state machine */
     virtual void TurnBackStep();
 
+    virtual void AutomodeRWStep();
+
     /* Computes wheel velocities from vector to follow */
     virtual CVector2 ComputeWheelsVelocityFromVector(CVector2 c_vector_to_follow);
 
     /* Virtual odometry updater */
     virtual void OdometryUpdate();
+
+    bool IsObstacleInFront(CCI_RVRProximitySensor::SReading s_prox_reading);
+
+    CCI_RVRProximitySensor::SReading SumProxReadingsArray(Real *s_prox_reading);
 
 private:
     /* These are pointers to the different sensors
@@ -265,6 +284,9 @@ private:
     // boolean that indicates if we are using the real robot
     bool rvr_driven;
 
+    // Range of the proximity sensor
+    Real prox_range;
+
     // current state
     State state;
 
@@ -296,6 +318,14 @@ private:
 
     // clocks
     ros::Time currentTime, lastTime;
+
+    //  automode random walk
+    ExplorationState m_eExplorationState;
+    TurnDirection m_eTurnDirection;
+
+    Real m_fProximityThreshold;
+    CRange<UInt32> m_cRandomStepsRange;
+    SInt32 m_unTurnSteps;
 };
 
 #endif
