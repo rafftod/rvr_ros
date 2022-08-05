@@ -7,3 +7,6 @@
 [submodule "src/ydlidar_ros"]
 	path = src/ydlidar_ros
 	url = https://github.com/YDLIDAR/ydlidar_ros
+[submodule "src/ydlidar_ros_driver"]
+	path = src/ydlidar_ros_driver
+	url = https://github.com/YDLIDAR/ydlidar_ros_driver
