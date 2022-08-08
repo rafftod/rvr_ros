@@ -23,7 +23,7 @@
 		    <rvr_rgb_leds implementation="default" medium="leds"/>
       </actuators>
       <sensors>
-        <rvr_ground implementation="rot_z_only" noise_mean="0" noise_std="5"/>
+        <rvr_ground implementation="rot_z_only" noise_mean=0 noise_std=5/>
         <rvr_proximity implementation="default" show_rays="true" />
         <rvr_lidar implementation="default" show_rays="false" />
         <rvr_quaternion implementation="default" />

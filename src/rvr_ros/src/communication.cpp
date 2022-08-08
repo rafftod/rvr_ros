@@ -1,5 +1,5 @@
 /* Include the controller definition */
-#include "foraging.h"
+#include "communication.h"
 /* Function definitions for XML parsing */
 #include <argos3/core/utility/configuration/argos_configuration.h>
 #include <iostream>
@@ -251,36 +251,8 @@ void CRVR::ControlStep()
     WriteFloorColorToFile();
     SetLedColorFromFile();
 
-    switch (state)
-    {
-    case State::START:
-        // save location and start exploration (transition to SEARCHING state)
-        StartStep();
-        break;
-    case State::SEARCHING:
-        // randow walk ? until target color detected, avoid borders
-        SearchStep();
-        break;
-    case State::PICKUP:
-        // wait to simulate pickup
-        PickupStep();
-        break;
-    case State::HOMING:
-        // turn in home direction then go straight
-        HomingStep();
-        break;
-    case State::TURN_BACK:
-        // 180° turn
-        TurnBackStep();
-        break;
-    case State::TEST:
-        // test state
-        TestStep();
-        break;
-    case State::AUTOMODE_RW:
-        AutomodeRWStep();
-        break;
-    }
+    AutomodeRWStep();
+
     if (!rvr_driven)
         OdometryUpdate();
     RosControlStep();
