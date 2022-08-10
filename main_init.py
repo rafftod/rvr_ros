@@ -6,6 +6,8 @@ UPDATE_INTERVAL = 0.5
 
 def saturate(colors):
     max_color = max(colors)
+    if max_color == 0:
+        return [0, 0, 0]
     factor = 255 / max_color
     for i in range(len(colors)):
         colors[i] = int(colors[i] * factor)
@@ -34,8 +36,9 @@ while True:
 
             if red is not None:
                 colors = [int(red), int(green), int(blue)]
+                print('before sat', colors)
                 colors = saturate(colors)
-                print(colors)
+                print('after  sat', colors)
                 device.set_color(colors[0], colors[1], colors[2])
                 device.send_transmission()
                 
