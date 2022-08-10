@@ -29,12 +29,14 @@ while True:
         with open('floor_color') as floor_color:
             try:
                 red, green, blue = floor_color.readline().strip().split()
+            except Exception as e:
+                red, green, blue = None, None, None
+
+            if red is not None:
                 colors = [int(red), int(green), int(blue)]
                 colors = saturate([red, green, blue])
                 print(colors)
                 device.set_color(colors[0], colors[1], colors[2])
                 device.send_transmission()
                 
-            except Exception as e:
-                pass
             last_update = now
