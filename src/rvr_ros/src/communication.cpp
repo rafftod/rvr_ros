@@ -268,9 +268,7 @@ void CRVR::ControlStep()
     WriteFloorColorToFile();
     SetLedColorFromFile();
 
-    // AutomodeRWStep();
-    leftWheelVelocity = 0;
-    rightWheelVelocity = 0;
+    AutomodeRWStep();
 
     if (!rvr_driven)
         OdometryUpdate();
