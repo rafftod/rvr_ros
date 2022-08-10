@@ -34,7 +34,7 @@ while True:
 
             if red is not None:
                 colors = [int(red), int(green), int(blue)]
-                colors = saturate([red, green, blue])
+                colors = saturate(colors)
                 print(colors)
                 device.set_color(colors[0], colors[1], colors[2])
                 device.send_transmission()
