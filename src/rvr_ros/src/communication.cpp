@@ -208,7 +208,7 @@ void CRVR::WriteFloorColorToFile()
     //std::cout << sensor_color.GetRed() << ' ' << sensor_color.GetGreen() << ' ' << sensor_color.GetBlue() << std::endl;
 
     std::ofstream floor_file("floor_color");
-    floor_file << sensor_color.GetRed() << ' ' << sensor_color.GetGreen() << ' ' << sensor_color.GetBlue() << '\n';
+    floor_file << sensor_color.GetRed() << ' ' << sensor_color.GetGreen() << ' ' << sensor_color.GetBlue() << ' \n';
     floor_file.close();
 }
 
@@ -252,7 +252,7 @@ void CRVR::SetLedColorFromFile()
     }
     catch(const std::exception& e)
     {
-        std::cerr << e.what() << '\n';
+        // std::cerr << e.what() << '\n';
     }
     
 
