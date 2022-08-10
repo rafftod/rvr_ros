@@ -239,8 +239,8 @@ void CRVR::SetLedColorFromFile()
         green = std::stoi(token);
         s.erase(0, pos + delimiter.length());
         
-        pos = s.find(delimiter);
-        token = s.substr(0, pos);
+        std::cout << s << std::endl;
+        token = s.substr(0, s.length()-2);
         blue = std::stoi(token);
 
         color = new CColor(red, green, blue);
