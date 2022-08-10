@@ -1,10 +1,13 @@
 from device import DWM1001
 import sys
 
-if len(sys.argv) != 2:
-    raise ValueError("Port not given")
 
-device = DWM1001(sys.argv[1])
+if len(sys.argv) != 2:
+    port = '/dev/ttyACM2'
+else:
+    port = sys.argv[1]
+
+device = DWM1001(port)
 
 while True:
     output = device.get_output()
