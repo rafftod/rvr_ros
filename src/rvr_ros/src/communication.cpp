@@ -214,36 +214,48 @@ void CRVR::WriteFloorColorToFile()
 
 void CRVR::SetLedColorFromFile()
 {
-    std::ifstream led_file("led_color");
-    std::string s;
-    std::getline(led_file, s);
-    led_file.close();
-
-    std::string delimiter = " ";
-    size_t pos = 0;
-    std::string token;
-
-    argos::CColor *color;
-    argos::UInt8 red, green, blue;
-
-    pos = s.find(delimiter);
-    token = s.substr(0, pos);
-    red = std::stoi(token);
-    s.erase(0, pos + delimiter.length());
-
-    pos = s.find(delimiter);
-    token = s.substr(0, pos);
-    green = std::stoi(token);
-    s.erase(0, pos + delimiter.length());
-    
-    blue = std::stoi(s);
-
-    color = new CColor(red, green, blue);
-    m_pcLedsActuator->SetColors(*color);
-    for (int i = 0; i < 5; i++)
+    try
     {
-        led_colors[i] = *color;
+        
+        std::ifstream led_file("led_color");
+        std::string s;
+        std::getline(led_file, s);
+        led_file.close();
+
+        std::string delimiter = " ";
+        size_t pos = 0;
+        std::string token;
+
+        argos::CColor *color;
+        argos::UInt8 red, green, blue;
+
+        pos = s.find(delimiter);
+        token = s.substr(0, pos);
+        red = std::stoi(token);
+        s.erase(0, pos + delimiter.length());
+
+        pos = s.find(delimiter);
+        token = s.substr(0, pos);
+        green = std::stoi(token);
+        s.erase(0, pos + delimiter.length());
+        
+        pos = s.find(delimiter);
+        token = s.substr(0, pos);
+        blue = std::stoi(token);
+
+        color = new CColor(red, green, blue);
+        m_pcLedsActuator->SetColors(*color);
+        for (int i = 0; i < 5; i++)
+        {
+            led_colors[i] = *color;
+        }
     }
+    catch(const std::exception& e)
+    {
+        std::cerr << e.what() << '\n';
+    }
+    
+
 }
 
 void CRVR::ControlStep()
