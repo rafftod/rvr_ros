@@ -13,9 +13,11 @@ def saturate(colors):
             colors[i] = 255
 
 if len(sys.argv) != 2:
-    raise ValueError("Port not given")
+    port = '/dev/ttyACM1'
+else:
+    port = sys.argv[1]
 
-device = DWM1001(sys.argv[1])
+device = DWM1001(port)
 start_time = time.time()
 last_update = start_time
 
@@ -26,7 +28,9 @@ while True:
             try:
                 red, green, blue = floor_color.readline().strip().split()
                 colors = [red, green, blue]
+                print(colors, end='  ')
                 saturate(colors)
+                print(colors)
                 device.set_color(colors[0], colors[1], colors[2])
                 device.send_transmission()
                 
