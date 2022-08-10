@@ -223,21 +223,27 @@ void CRVR::SetLedColorFromFile()
     size_t pos = 0;
     std::string token;
 
-    argos::CColor color;
+    argos::CColor *color;
+    argos::UInt8 red, green, blue;
 
     pos = s.find(delimiter);
     token = s.substr(0, pos);
-    color.SetRed(std::stoi(token));
+    red = std::stoi(token);
     s.erase(0, pos + delimiter.length());
 
     pos = s.find(delimiter);
     token = s.substr(0, pos);
-    color.SetGreen(std::stoi(token));
+    green = std::stoi(token);
     s.erase(0, pos + delimiter.length());
     
-    color.SetBlue(std::stoi(s));
-    color.SetAlpha(255);
-    m_pcLedsActuator->SetColors(color);
+    blue = std::stoi(s);
+
+    color = new CColor(red, green, blue);
+    m_pcLedsActuator->SetColors(*color);
+    for (int i = 0; i < 5; i++)
+    {
+        led_colors[i] = *color;
+    }
 }
 
 void CRVR::ControlStep()
@@ -251,7 +257,7 @@ void CRVR::ControlStep()
     WriteFloorColorToFile();
     SetLedColorFromFile();
 
-    AutomodeRWStep();
+    // AutomodeRWStep();
 
     if (!rvr_driven)
         OdometryUpdate();

@@ -3,7 +3,6 @@
 /* Function definitions for XML parsing */
 #include <argos3/core/utility/configuration/argos_configuration.h>
 #include <iostream>
-#include <fstream>
 
 #define round(x) (float)(((float)((int)(x * 100 + .5))) / 100) // rounds to second decimal
 
@@ -203,54 +202,13 @@ void CRVR::VirtualSense()
     angularVelocity = m_pcGyroscopeSensor->GetReading().AngularVelocity;
 }
 
-void CRVR::WriteFloorColorToFile()
-{
-    //std::cout << sensor_color.GetRed() << ' ' << sensor_color.GetGreen() << ' ' << sensor_color.GetBlue() << std::endl;
-
-    std::ofstream floor_file("floor_color");
-    floor_file << sensor_color.GetRed() << ' ' << sensor_color.GetGreen() << ' ' << sensor_color.GetBlue() << '\n';
-    floor_file.close();
-}
-
-void CRVR::SetLedColorFromFile()
-{
-    std::ifstream led_file("led_color");
-    std::string s;
-    std::getline(led_file, s);
-    led_file.close();
-
-    std::string delimiter = " ";
-    size_t pos = 0;
-    std::string token;
-
-    argos::CColor color;
-
-    pos = s.find(delimiter);
-    token = s.substr(0, pos);
-    color.SetRed(std::stoi(token));
-    s.erase(0, pos + delimiter.length());
-
-    pos = s.find(delimiter);
-    token = s.substr(0, pos);
-    color.SetGreen(std::stoi(token));
-    s.erase(0, pos + delimiter.length());
-    
-    color.SetBlue(std::stoi(s));
-    color.SetAlpha(255);
-    m_pcLedsActuator->SetColors(color);
-}
-
 void CRVR::ControlStep()
 {
     if (!rvr_driven)
     {
         VirtualSense();
     }
-
-    //m_pcLedsActuator->SetColors(sensor_color);
-    WriteFloorColorToFile();
-    SetLedColorFromFile();
-
+    // m_pcLedsActuator->SetColors(sensor_color);
     switch (state)
     {
     case State::START:
@@ -305,6 +263,7 @@ void CRVR::AutomodeRWStep()
     {
     case RANDOM_WALK:
     {
+        std::cout << "rw" << std::endl;
         leftWheelVelocity = m_fDefaultWheelVelocity;
         rightWheelVelocity = m_fDefaultWheelVelocity;
         m_pcWheels->SetLinearVelocity(m_fDefaultWheelVelocity, m_fDefaultWheelVelocity);
@@ -326,6 +285,7 @@ void CRVR::AutomodeRWStep()
     }
     case OBSTACLE_AVOIDANCE:
     {
+        std::cout << "turn" << std::endl;
         m_unTurnSteps -= 1;
         switch (m_eTurnDirection)
         {
