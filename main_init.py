@@ -11,6 +11,8 @@ def saturate(colors):
         colors[i] = int(colors[i] * factor)
         if colors[i] > 255:
             colors[i] = 255
+    return colors
+    
 
 if len(sys.argv) != 2:
     port = '/dev/ttyACM1'
@@ -27,9 +29,8 @@ while True:
         with open('floor_color') as floor_color:
             try:
                 red, green, blue = floor_color.readline().strip().split()
-                colors = [red, green, blue]
-                print(colors, end='  ')
-                saturate(colors)
+                colors = [int(red), int(green), int(blue)]
+                colors = saturate([red, green, blue])
                 print(colors)
                 device.set_color(colors[0], colors[1], colors[2])
                 device.send_transmission()
