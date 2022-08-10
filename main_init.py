@@ -15,7 +15,10 @@ while True:
     now = time.time()
     if now - last_update > UPDATE_INTERVAL:
         with open('floor_color') as floor_color:
-            red, green, blue = floor_color.readline().strip().split()
-            device.set_color(red, green, blue)
-            device.send_transmission()
-            last_update = now
+            try:
+                red, green, blue = floor_color.readline().strip().split()
+                device.set_color(red, green, blue)
+                device.send_transmission()
+                last_update = now
+            except Exception as e:
+                print(e)
