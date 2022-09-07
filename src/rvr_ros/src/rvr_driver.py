@@ -430,12 +430,12 @@ class RobotDriver(DriverLogger):
 
     def apply_actuators(self):
         """Applies the stored actuator values to the robot."""
-        print(self.led_settings)
+        #print(self.led_settings)
         self.rvr.led_control.set_multiple_leds_with_rgb(
             leds=list(self.led_settings.keys()),
             colors=list(itertools.chain(*self.led_settings.values())),
         )
-        print(self.speed_params)
+        #print(self.speed_params)
         self.rvr.drive_tank_si_units(
             **self.speed_params, timeout=self.CALLBACK_INTERVAL_DURATION
         )
