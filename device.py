@@ -43,10 +43,10 @@ class DWM1001:
     def write(self, string):
         self.device.write(bytes(string, encoding='utf-8'))
     
-    def set_color(self, red, green, blue):
-        self.write('R' + '0'*(3-len(str(red))) + str(red))
-        self.write('G' + '0'*(3-len(str(green))) + str(green))
-        self.write('B' + '0'*(3-len(str(blue))) + str(blue))
+    def set_color(self, color):
+        self.write('R' + str(color[0]) + 'F')
+        self.write('G' + str(color[1]) + 'F')
+        self.write('B' + str(color[2]) + 'F')
 
     def send_transmission(self):
         self.write('S')

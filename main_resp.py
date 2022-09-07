@@ -13,5 +13,5 @@ while True:
     output = device.get_output()
     if output != '':
         with open('led_color', 'w') as led_color:
-            print(output)
+            print('Led color :', output)
             led_color.write(output)
