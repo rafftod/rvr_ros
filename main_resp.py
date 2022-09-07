@@ -3,7 +3,7 @@ import sys
 
 
 if len(sys.argv) != 2:
-    port = '/dev/ttyACM2'
+    port = '/dev/ttyACM0'
 else:
     port = sys.argv[1]
 

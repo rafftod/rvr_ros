@@ -49,4 +49,4 @@ class DWM1001:
         self.write('B' + str(color[2]) + 'F')
 
     def send_transmission(self):
-        self.write('S')
+        self.write('T')
